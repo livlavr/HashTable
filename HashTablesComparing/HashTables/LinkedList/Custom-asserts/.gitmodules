@@ -1,0 +1,3 @@
+[submodule "Color-printf"]
+	path = Color-printf
+	url = git@github.com:livlavr/Color-printf.git
