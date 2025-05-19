@@ -3,11 +3,12 @@
 
 #include <stdint.h>
 
-typedef uint32_t (stringHashFunction) (const char* key, uint32_t hash_table_capacity);
+typedef uint64_t (stringHashFunction) (const char* key, size_t length);
 
-extern uint32_t lengthHash    (const char* key, uint32_t hash_table_capacity);
-extern uint32_t sumHash       (const char* key, uint32_t hash_table_capacity);
-extern uint32_t polynomialHash(const char* key, uint32_t hash_table_capacity);
-extern uint32_t crc32Hash     (const char* key, uint32_t hash_table_capacity);
+uint64_t sumHash            (const char* key, size_t length);
+uint64_t polynomialHash     (const char* key, size_t length);
+uint64_t crc32Hash          (const char* key, size_t length);
+uint64_t crc32HashOptimized (const char* key, size_t length);
+uint64_t crc32HashIntrinsics(const char* key, size_t length);
 
 #endif
