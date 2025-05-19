@@ -8,15 +8,16 @@ generateAndOpenPlots () {
     cd ..
 }
 
+cd ..
 python -m venv venv
 source venv/bin/activate
 pip install matplotlib
 
-cd HashFunctionsComparing
 cd Scripts
-./StartComparing.sh
+./CompareHashFunctions.sh
 
 cd ..
+cd HashFunctionsComparing
 generateAndOpenPlots
 cd ..
 

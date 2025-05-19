@@ -11,21 +11,20 @@ set(ENV{CXX} "g++")
 message(STATUS "C standard ${CMAKE_C_STANDARD}")
 message(STATUS "C++ standard ${CMAKE_CXX_STANDARD}")
 
-project(HashTablesTests)
+project(HashTable)
 
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/HashTables)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/LinkedList)
 
-add_executable(HashTablesTests
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/TestingSystem.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp
+add_library(HashTable
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/ChainHashTable.cpp
 )
 
-target_include_directories(HashTablesTests PUBLIC
+target_include_directories(HashTable PUBLIC
+    LinkedList/inc
     inc
-    ${CMAKE_CURRENT_SOURCE_DIR}/HashTables/LinkedList/inc
-    ${CMAKE_CURRENT_SOURCE_DIR}/HashTables/inc
 )
 
-target_link_libraries(HashTablesTests PUBLIC
-    HashTables
+target_link_libraries(HashTable PUBLIC
+    LinkedList
+    HashFunctions
 )

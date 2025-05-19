@@ -1,5 +1,5 @@
-#ifndef TESTS_HPP
-#define TESTS_HPP
+#ifndef HASH_FUNCTION_TEST_HPP
+#define HASH_FUNCTION_TEST_HPP
 
 #include "StringHash.hpp"
 

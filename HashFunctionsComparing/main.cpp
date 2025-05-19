@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "Tests.hpp"
+#include "HashFunctionTest.hpp"
 
 int main(int argc, char** argv) {
     int tests_type = UNDEFINED_HASH_FUNCTION;

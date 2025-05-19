@@ -11,19 +11,13 @@ set(ENV{CXX} "g++")
 message(STATUS "C standard ${CMAKE_C_STANDARD}")
 message(STATUS "C++ standard ${CMAKE_CXX_STANDARD}")
 
-project(HashTables)
+project(HashTable)
 
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/LinkedList)
-
-add_library(HashTables
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/ChainHashTable.cpp
+add_compile_options(
+    "$<$<COMPILE_LANGUAGE:CXX>:-O3;-DNDEBUG;-std=c++20;-march=native;-mtune=native;-masm=intel>"
 )
 
-target_include_directories(HashTables PUBLIC
-    LinkedList/inc
-    inc
-)
+add_subdirectory(${CMAKE_SOURCE_DIR}/HashFunctions)
+add_subdirectory(${CMAKE_SOURCE_DIR}/HashFunctionsComparing)
+# add_subdirectory(${CMAKE_SOURCE_DIR}/HashTable)
 
-target_link_libraries(HashTables PUBLIC
-    LinkedList
-)

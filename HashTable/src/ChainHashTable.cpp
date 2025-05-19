@@ -3,43 +3,34 @@
 
 #include "llist.h"
 #include "llistDump.h"
+#include "StringHash.hpp"
 #include "ChainHashTable.hpp"
 #include "custom_asserts.h"
 
-uint32_t mulHash(const uint32_t key, uint32_t hash_table_capacity) {
-    uint32_t A = 2654435769;
-    uint64_t product = key * 2654435769;
-    uint64_t integer_part = product >> 32;
-    integer_part <<= 32;
-    uint32_t hash = (uint32_t)(product - integer_part);
+ChainHashTableErrors chainHashTableCtor(ChainHashTable* hash_table, int ctor_capacity) {
+    warning(hash_table, CHAIN_NULL_PTR_ERROR);
+    warning(ctor_capacity > 0, CHAIN_CTOR_CAPACITY_ERROR);
 
-    return hash % hash_table_capacity;
-}
-
-ChainHashTableErrors chainHashTableCtor(ChainHashTable* hash_table, int ctor_capacity, float ctor_load_factor) {
     hash_table->capacity    = ctor_capacity;
-    hash_table->load_factor = ctor_load_factor;
+    hash_table->load_factor = 0;
     hash_table->size        = 0;
 
     hash_table->buckets = (LinkedList**)calloc(ctor_capacity, sizeof(LinkedList*));
     for(int i = 0; i < ctor_capacity; i++) {
         hash_table->buckets[i] = (LinkedList*)calloc(1, sizeof(LinkedList));
 
-        LlistErrors llist_ctor_return = llistCtor(hash_table->buckets[i], CTOR_LINKED_LIST_CAPACITY);
-        warning(llist_ctor_return == SUCCESS, CHAIN_HASH_ERROR);
+        warning(llistCtor(hash_table->buckets[i], CTOR_LINKED_LIST_CAPACITY) == SUCCESS, CHAIN_HASH_ERROR);
     }
 
     return CHAIN_HASH_SUCCESS;
 }
 
-ChainHashTableErrors chainHashTableInsert(ChainHashTable* hash_table, uint32_t key) {
-    int index = mulHash(key, hash_table->capacity);
+ChainHashTableErrors chainHashTableInsert(ChainHashTable* hash_table, const char* key) {
+    warning(hash_table, CHAIN_NULL_PTR_ERROR);
 
-    if((hash_table->size / hash_table->capacity * hash_table->buckets[0]->capacity) > hash_table->load_factor) {
-        chainHashTableRehash(hash_table);
-    }
+    int index = crc32HashIntrinsics(key, MAX_WORD_LENGTH) % hash_table->capacity;
 
-    llistPushBack(hash_table->buckets[index], key);
+    warning(llistPushBack(hash_table->buckets[index], key) == LINKED_LIST_SUCCESS, );
     (hash_table->size)++;
 
     return CHAIN_HASH_SUCCESS;
@@ -71,7 +62,7 @@ ChainHashTableErrors chainHashTableRehash(ChainHashTable* hash_table) {
     }
     FREE(hash_table->buckets);
 
-    hash_table->buckets = new_buckets;
+    hash_table->buckets  = new_buckets;
     hash_table->capacity = new_capacity;
 
     return CHAIN_HASH_SUCCESS;
