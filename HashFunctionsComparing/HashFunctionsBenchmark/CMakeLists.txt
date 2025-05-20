@@ -11,17 +11,17 @@ set(ENV{CXX} "g++")
 message(STATUS "C standard ${CMAKE_C_STANDARD}")
 message(STATUS "C++ standard ${CMAKE_CXX_STANDARD}")
 
-project(HashFunctionTest)
+project(HashFunctionsBenchmark)
 
-add_library(HashFunctionTest
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/HashFunctionTest.cpp
+add_library(HashFunctionsBenchmark
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/HashFunctionsBenchmark.cpp
 )
 
-target_include_directories(HashFunctionTest PUBLIC
+target_include_directories(HashFunctionsBenchmark PUBLIC
     inc
 )
 
-target_link_libraries(HashFunctionTest PUBLIC
+target_link_libraries(HashFunctionsBenchmark PUBLIC
     HashFunctions
 )
 

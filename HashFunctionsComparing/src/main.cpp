@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "HashFunctionTest.hpp"
+#include "HashFunctionsBenchmark.hpp"
 
 int main(int argc, char** argv) {
     int tests_type = UNDEFINED_HASH_FUNCTION;
@@ -20,9 +20,9 @@ int main(int argc, char** argv) {
         case CRC32_HASH_OPTIMIZED:
             testStringHashFunction(crc32HashOptimized);
             break;
-        // case CRC32_HASH_INTRINSICS:
-        //     testStringHashFunction(crc32HashIntrinsics);
-            // break;
+        case CRC32_HASH_INTRINSICS:
+            testStringHashFunction(crc32HashIntrinsics);
+            break;
         default:
             printf("Unknown string_tests flag: %d\n", tests_type);
             break;

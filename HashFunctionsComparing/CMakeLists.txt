@@ -13,13 +13,13 @@ message(STATUS "C++ standard ${CMAKE_CXX_STANDARD}")
 
 project(HashFunctionsComparing)
 
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/TestingSystem)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/HashFunctionsBenchmark)
 
 add_executable(HashFunctionsComparing
-    ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp
 )
 
 target_link_libraries(HashFunctionsComparing PUBLIC
-    HashFunctionTest
+    HashFunctionsBenchmark
 )
 

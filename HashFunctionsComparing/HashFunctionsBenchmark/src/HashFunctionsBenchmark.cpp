@@ -3,7 +3,7 @@
 #include <getopt.h>
 #include <string.h>
 
-#include "HashFunctionTest.hpp"
+#include "HashFunctionsBenchmark.hpp"
 
 static const uint64_t HASH_TABLE_CAPACITY = 1000;
 static const size_t   WORD_MAX_LENGTH = 32;

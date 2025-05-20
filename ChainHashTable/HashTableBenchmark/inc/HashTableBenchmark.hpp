@@ -1,5 +1,5 @@
-#ifndef TESTING_SYSTEM_HPP
-#define TESTING_SYSTEM_HPP
+#ifndef HASH_TABLE_BENCHMARK_HPP
+#define HASH_TABLE_BENCHMARK_HPP
 
 #include "FileHandlerDefinitions.hpp"
 

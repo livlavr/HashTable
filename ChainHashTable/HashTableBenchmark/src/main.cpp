@@ -3,7 +3,7 @@
 #include <time.h>
 
 #include "ChainHashTable.hpp"
-#include "TestingSystem.hpp"
+#include "HashTableBenchmark.hpp"
 #include "FileHandler.hpp"
 #include "FileHandlerSpecializations.hpp"
 
@@ -11,7 +11,7 @@ int main() {
     ChainHashTable* hash_table = (ChainHashTable*)calloc(1, sizeof(ChainHashTable));
     chainHashTableCtor(hash_table, CTOR_HASH_TABLE_CAPACITY);
 
-    const char*    filename  = "../../../HashFunctionsComparing/TestsSrc/Tests.txt";
+    const char*    filename  = "../HashFunctionsComparing/TestsSrc/Tests.txt";
     Buffer<char>*  test_file = (Buffer<char>*)calloc(1, sizeof(Buffer<char>));
     Buffer<char*>* lines     = (Buffer<char*>*)calloc(1, sizeof(Buffer<char*>));
 
