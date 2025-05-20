@@ -32,6 +32,8 @@ enum ChainHashTableErrors {
     CHAIN_ALREADY_EXIST_ERROR = 1 << 6,
 };
 
+static const int CTOR_HASH_TABLE_CAPACITY = 1000;
+
 ChainHashTableErrors       chainHashTableCtor  (ChainHashTable* hash_table, int ctor_capacity);
 ChainHashTableErrors       chainHashTableDtor  (ChainHashTable* hash_table);
 ChainHashTableErrors       chainHashTableInsert(ChainHashTable* hash_table, const char* key);

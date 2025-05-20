@@ -11,14 +11,14 @@ def random_word():
 def generate_test(n):
     test = [str(n)]
     for _ in range(n):
-        op = random.choices(['+', '-', '?'], weights=[2, 2, 6])[0]
+        op = random.choices(['+', '-', '?'], weights=[4, 2, 4])[0]
         word = random_word()
-        test.append(f"{op} {word}")
+        test.append(f"{op} {word}\n{'?'} {word}")
     return '\n'.join(test) + '\n'
 
 def run_reference(test_input):
     result = subprocess.run(
-        ['python3', '../ChainHashTable/UnitTests/Reference.py'],
+        ['python3', '../../ChainHashTable/UnitTests/Reference.py'],
         input=test_input,
         capture_output=True,
         text=True
@@ -27,7 +27,7 @@ def run_reference(test_input):
 
 def run_your_program(test_input):
     result = subprocess.run(
-        ['./ChainHashTable/HashTableUnitTest'],
+        ['./HashTableUnitTest'],
         input=test_input,
         capture_output=True,
         text=True
@@ -39,7 +39,7 @@ def main():
     test_count = 0
     while True:
         test_count += 1
-        n = random.randint(1, 10)
+        n = random.randint(1, 20)
         test_input = generate_test(n)
 
         expected = run_reference(test_input)

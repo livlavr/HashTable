@@ -57,6 +57,7 @@ inline int CountLines<char>(Buffer<char>* buffer) {
             lines_number++;
         }
     }
+    lines_number++;
 
     return lines_number;
 }

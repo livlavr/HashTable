@@ -10,7 +10,7 @@ void cleanBuffer() {
 
 int main() {
     ChainHashTable* hash_table = (ChainHashTable*)calloc(1, sizeof(ChainHashTable));
-    chainHashTableCtor(hash_table, 1000);
+    chainHashTableCtor(hash_table, 100);
 
     int n = 0;
     scanf("%d", &n);

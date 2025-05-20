@@ -3,7 +3,7 @@
 
 #include "FileHandlerDefinitions.hpp"
 
-void randomOperationsTest();
+void hashTableSearchTest(ChainHashTable* hash_table, Buffer<char*>* lines);
 void fillChainHashTable(ChainHashTable* hash_table, Buffer<char*>* lines);
 
 #endif

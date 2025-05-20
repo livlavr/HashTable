@@ -46,10 +46,10 @@ add_executable(HashTableUnitTest
     ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp
 )
 
-target_compile_options(HashTableUnitTest PRIVATE
-    $<$<CONFIG:Debug>:${DEBUG_FLAGS}>
-    $<$<CONFIG:Release>:${RELEASE_FLAGS}>
-)
+# target_compile_options(HashTableUnitTest PRIVATE
+#     $<$<CONFIG:Debug>:${DEBUG_FLAGS}>
+#     $<$<CONFIG:Release>:${RELEASE_FLAGS}>
+# )
 
 target_include_directories(HashTable PUBLIC
     LinkedList/inc

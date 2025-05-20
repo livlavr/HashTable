@@ -8,13 +8,12 @@
 #include "ChainHashTable.hpp"
 #include "custom_asserts.h"
 
-static const int CTOR_LINKED_LIST_CAPACITY = 10000;
-static const int CTOR_HASH_TABLE_CAPACITY  = 10000;
+static const int CTOR_LINKED_LIST_CAPACITY = 20;
 static const int MAX_WORD_LENGTH           = 32;
-#define DEFAULT_HASH_FUNCTION crc32Hash;
+#define DEFAULT_HASH_FUNCTION crc32HashIntrinsics;
 
 ChainHashTableErrors chainHashTableCtor(ChainHashTable* hash_table, int ctor_capacity) {
-    warning(hash_table, CHAIN_NULL_PTR_ERROR);
+    warning(hash_table,        CHAIN_NULL_PTR_ERROR);
     warning(ctor_capacity > 0, CHAIN_CTOR_CAPACITY_ERROR);
 
     hash_table->capacity     = ctor_capacity;
@@ -26,7 +25,7 @@ ChainHashTableErrors chainHashTableCtor(ChainHashTable* hash_table, int ctor_cap
 
     for(int i = 0; i < ctor_capacity; i++) {
         hash_table->buckets[i] = (LinkedList*)calloc(1, sizeof(LinkedList));
-        warning(llistCtor(hash_table->buckets[i], CTOR_LINKED_LIST_CAPACITY) == LINKED_LIST_SUCCESS, CHAIN_HASH_ERROR);
+        llistCtor(hash_table->buckets[i], CTOR_LINKED_LIST_CAPACITY);
     }
 
     return CHAIN_HASH_SUCCESS;
@@ -39,15 +38,38 @@ ChainHashTableErrors chainHashTableInsert(ChainHashTable* hash_table, const char
         return CHAIN_ALREADY_EXIST_ERROR;
     }
 
-    uint64_t hash = hash_table->hashFunction(key, MAX_WORD_LENGTH);
-    int index = hash % hash_table->capacity;
-
     char* allocated_key = (char*)calloc(MAX_WORD_LENGTH, sizeof(char));
-    memcpy(allocated_key, key, MAX_WORD_LENGTH * sizeof(char));
+    strncpy(allocated_key, key, MAX_WORD_LENGTH);
+
+    uint64_t hash = hash_table->hashFunction(allocated_key, MAX_WORD_LENGTH);
+    int index = hash % hash_table->capacity;
 
     Element element = {.key  = allocated_key,
                        .hash = hash};
-    warning(llistPushBack(hash_table->buckets[index], &element) == LINKED_LIST_SUCCESS, CHAIN_INSERT_ERROR);
+    // printf("<insert: %s>\n",   element.key);
+    // printf("<<element.key: %d>>\n", hash_table->hashFunction(element.key, MAX_WORD_LENGTH) % hash_table->capacity);
+    // printf("<%s>\n", element.key);
+    // printf("<%d>\n", index);
+    // fprintf(stderr, "<hash_table->buckets[index] index: %d>\n", index);
+    // fprintf(stderr, "<hash_table->buckets[290]->free: %d>\n", hash_table->buckets[290]->free);
+    // fprintf(stderr, "<hash_table->buckets[290]->capacity: %d>\n", hash_table->buckets[290]->capacity);
+    // fprintf(stderr, "<hash_table->buckets[290]->next: %d>\n",     hash_table->buckets[290]->next[0]);
+    // fprintf(stderr, "<hash_table->buckets[290]->prev: %d>\n",     hash_table->buckets[290]->prev[0]);
+    // fprintf(stderr, "<hash_table->buckets[290]->size: %d>\n",     hash_table->buckets[290]->size);
+    // fprintf(stderr, "element.key: %s>\n", element.key);
+
+    llistPushBack(hash_table->buckets[index], &element);
+
+    // fprintf(stderr, "AFTER PUSH BACK\n");
+    // fprintf(stderr, "<hash_table->buckets[index] index: %d>\n", index);
+    // fprintf(stderr, "<hash_table->buckets[290]->free: %d>\n", hash_table->buckets[290]->free);
+    // fprintf(stderr, "<hash_table->buckets[290]->capacity: %d>\n", hash_table->buckets[290]->capacity);
+    // fprintf(stderr, "<hash_table->buckets[290]->next: %d>\n",     hash_table->buckets[290]->next[0]);
+    // fprintf(stderr, "<hash_table->buckets[290]->prev: %d>\n",     hash_table->buckets[290]->prev[0]);
+    // fprintf(stderr, "<hash_table->buckets[290]->size: %d>\n",     hash_table->buckets[290]->size);
+    // fprintf(stderr, "element.key: %s>\n", element.key);
+
+    // printf("<%d>\n", hash_table->buckets[index]->size);
 
     (hash_table->size)++;
 
@@ -60,7 +82,7 @@ ChainHashTableErrors chainHashTableRehash(ChainHashTable* hash_table) {
 
     for (int i = 0; i < new_capacity; i++) {
         new_buckets[i] = (LinkedList*)calloc(1, sizeof(LinkedList));
-        warning(llistCtor(new_buckets[i], CTOR_LINKED_LIST_CAPACITY) == LINKED_LIST_SUCCESS, CHAIN_REHASH_ERROR);
+        llistCtor(new_buckets[i], CTOR_LINKED_LIST_CAPACITY);
     }
 
     for (int i = 0; i < hash_table->capacity; i++) {
@@ -97,13 +119,16 @@ float chainHashTableGetLoadFactor(ChainHashTable* hash_table) {
 ChainHashTableSearchStatus chainHashTableSearch(ChainHashTable* hash_table, const char* key) {
     warning(hash_table, NOT_FOUND);
 
-    int bucket_index = (hash_table->hashFunction(key, MAX_WORD_LENGTH)) % hash_table->capacity;
+    int bucket_index = hash_table->hashFunction(key, MAX_WORD_LENGTH) % hash_table->capacity;
     LinkedList* llist = hash_table->buckets[bucket_index];
     int index = 0;
-
+    // printf("bucket_index: %d\n", bucket_index);
     for (int i = 0; i < llist->size; i++) {
         index = llist->next[index];
+        // printf("llist->data[index].key: %s\n", llist->data[index].key);
+        // printf("key: %s\n", key);
         if (strcmp(llist->data[index].key, key) == 0) {
+            // printf("FOUND\n");
             return FOUND;
         }
     }
@@ -121,7 +146,7 @@ ChainHashTableErrors chainHashTableDelete(ChainHashTable* hash_table, const char
     for (int i = 0; i < llist->size; i++) {
         index = llist->next[index];
         if (strcmp(llist->data[index].key, key) == 0) {
-            warning(llistErase(llist, index) == LINKED_LIST_SUCCESS, CHAIN_DELETE_ERROR);
+            llistErase(llist, index);
             (hash_table->size)--;
 
             break;

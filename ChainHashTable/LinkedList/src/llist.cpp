@@ -8,7 +8,7 @@
 #include "llistDump.h"
 
 LlistErrors llistCtor(LinkedList* llist, int capacity) {
-    warning(llist, LINKED_LIST_NULL_PTR_ERROR);
+    warning(llist,        LINKED_LIST_NULL_PTR_ERROR);
     warning(capacity > 0, LINKED_LIST_VALUE_ERROR);
 
     int actual_capacity = capacity + 1;
@@ -31,9 +31,9 @@ LlistErrors llistCtor(LinkedList* llist, int capacity) {
     llist->next[llist->capacity - 1] = 0;
 
     for(int i = 1; i < llist->capacity; i++) {
-        llist->prev[i] = -1;
+        llist->prev[i]      = -1;
         llist->data[i].key  = NULL;
-        llist->data[i].hash = (uint64_t)-1;
+        llist->data[i].hash = 0;
     }
 
     llist->prev[0] = 0;
@@ -63,19 +63,18 @@ LlistErrors llistResize(LinkedList* llist, int new_capacity) {
     llist->next = new_next;
     llist->prev = new_prev;
 
-    for (int i = old_capacity; i < new_capacity; ++i) {
-        llist->prev[i] = -1;
+    for (int i = old_capacity; i < new_capacity; i++) {
+        llist->prev[i]      = -1;
         llist->data[i].key  = NULL;
-        llist->data[i].hash = (uint64_t)-1;
+        llist->data[i].hash = 0;
     }
 
-    for (int i = old_capacity; i < new_capacity - 2; ++i) {
+    for (int i = old_capacity; i < new_capacity - 1; i++) {
         llist->next[i] = i + 1;
     }
-
     llist->next[new_capacity - 1] = 0;
-    llist->free = old_capacity;
 
+    llist->free = old_capacity;
     llist->capacity = new_capacity;
 
     return LINKED_LIST_SUCCESS;
@@ -98,18 +97,23 @@ LlistErrors llistPopBack(LinkedList* llist) {
 }
 
 LlistErrors llistInsertAfter(LinkedList* llist, Element* element, int index) {
-    warning(llist, LINKED_LIST_NULL_PTR_ERROR);
+    warning(llist,   LINKED_LIST_NULL_PTR_ERROR);
     warning(element, LINKED_LIST_NULL_PTR_ERROR);
 
     if (llist->free == 0) {
-        LlistErrors resize_status = LINKED_LIST_SUCCESS;
-        warning((resize_status = llistResize(llist, llist->capacity * 2)) == LINKED_LIST_SUCCESS, resize_status);
+        // fprintf(stderr, "llistResize\n");
+        llistResize(llist, llist->capacity * 2);
     }
 
     if(llist->prev[index] == -1) {
         color_printf(RED_COLOR, BOLD, "ERROR: You trying to insert element after free cell\n");
         warning(llist->prev[index] != -1, LINKED_LIST_INPUT_ERROR);
     }
+    // fprintf(stderr, "<llist->free1: %d>\n", llist->free);
+    // fprintf(stderr, "<llist->capacity: %d>\n", llist->capacity);
+    // fprintf(stderr, "<llist->next: %d>\n", llist->next[0]);
+    // fprintf(stderr, "<llist->prev: %d>\n", llist->prev[0]);
+    // fprintf(stderr, "<llist->size: %d>\n", llist->size);
 
     //Add element to data
     llist->data[llist->free].key  = element->key;
@@ -121,8 +125,10 @@ LlistErrors llistInsertAfter(LinkedList* llist, Element* element, int index) {
     //Change prev of first free cell to index (prev = index)
     llist->prev[llist->free] = index;
 
-    //Change index of first free cell
+    // Change index of first free cell
+    // fprintf(stderr, "<llist->free2: %d>\n", llist->free);
     llist->free = llist->next[llist->free];
+    // fprintf(stderr, "<llist->free3: %d>\n", llist->free);
 
     //Change index "next" of inserted element on next logical cell
     llist->next[llist->prev[llist->next[index]]] = llist->next[index];
@@ -150,8 +156,11 @@ LlistErrors llistErase(LinkedList* llist, int index) {
     warning(llist, LINKED_LIST_NULL_PTR_ERROR);
 
     //Poison data value
-    llist->data[index].key = NULL;
-    llist->data[index].hash = (uint64_t)-1;
+    if(llist->data[index].key) {
+        FREE(llist->data[index].key);
+        llist->data[index].key  = NULL;
+    }
+    llist->data[index].hash = 0;
 
     //Next of prev becomes next of deleted index
     llist->next[llist->prev[index]] = llist->next[index];
@@ -177,6 +186,7 @@ LlistErrors llistErase(LinkedList* llist, int index) {
 LlistErrors llistDtor(LinkedList* llist) {
     for(int i = 0; i < llist->capacity; i++) {
         if(llist->data[i].key) {
+            // printf("<%s>\n", llist->data[i].key);
             FREE(llist->data[i].key);
         }
     }
