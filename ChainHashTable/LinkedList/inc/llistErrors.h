@@ -1,0 +1,14 @@
+#ifndef LLIST_ERRORS_H
+#define LLIST_ERRORS_H
+
+enum LlistErrors {
+    LINKED_LIST_SUCCESS          = 0,
+    LINKED_LIST_INPUT_ERROR      = 1,
+    LINKED_LIST_VALUE_ERROR      = 1 << 1,
+    LINKED_LIST_PROGRAM_ERROR    = 1 << 2,
+    LINKED_LIST_FILE_OPEN_ERROR  = 1 << 3,
+    LINKED_LIST_ALLOCATION_ERROR = 1 << 4,
+    LINKED_LIST_NULL_PTR_ERROR   = 1 << 5
+};
+
+#endif

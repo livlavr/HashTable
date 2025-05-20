@@ -13,11 +13,6 @@ message(STATUS "C++ standard ${CMAKE_CXX_STANDARD}")
 
 project(HashTable)
 
-add_compile_options(
-    "$<$<COMPILE_LANGUAGE:CXX>:-O3;-DNDEBUG;-std=c++20;-march=native;-mtune=native;-masm=intel>"
-)
-
 add_subdirectory(${CMAKE_SOURCE_DIR}/HashFunctions)
 add_subdirectory(${CMAKE_SOURCE_DIR}/HashFunctionsComparing)
-# add_subdirectory(${CMAKE_SOURCE_DIR}/HashTable)
-
+add_subdirectory(${CMAKE_SOURCE_DIR}/ChainHashTable)

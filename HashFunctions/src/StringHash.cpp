@@ -37,26 +37,26 @@ uint64_t crc32HashOptimized(const char* key, size_t length) {
     return ~crc;
 }
 
-uint64_t crc32HashIntrinsics(const char* key, size_t length) {
-    uint64_t crc = 0xFFFFFFFF;
-
-    uint64_t string_key1 = 0;
-    uint64_t string_key2 = 0;
-    uint64_t string_key3 = 0;
-    uint64_t string_key4 = 0;
-
-    memcpy(&string_key1, key + 0, 8);
-    memcpy(&string_key2, key + 8, 8);
-    memcpy(&string_key3, key + 16, 8);
-    memcpy(&string_key4, key + 24, 8);
-
-    crc = _mm_crc32_u64(crc, string_key1);
-    crc = _mm_crc32_u64(crc, string_key2);
-    crc = _mm_crc32_u64(crc, string_key3);
-    crc = _mm_crc32_u64(crc, string_key4);
-
-    return crc;
-}
+// uint64_t crc32HashIntrinsics(const char* key, size_t length) {
+//     uint64_t crc = 0xFFFFFFFF;
+//
+//     uint64_t string_key1 = 0;
+//     uint64_t string_key2 = 0;
+//     uint64_t string_key3 = 0;
+//     uint64_t string_key4 = 0;
+//
+//     memcpy(&string_key1, key + 0, 8);
+//     memcpy(&string_key2, key + 8, 8);
+//     memcpy(&string_key3, key + 16, 8);
+//     memcpy(&string_key4, key + 24, 8);
+//
+//     crc = _mm_crc32_u64(crc, string_key1);
+//     crc = _mm_crc32_u64(crc, string_key2);
+//     crc = _mm_crc32_u64(crc, string_key3);
+//     crc = _mm_crc32_u64(crc, string_key4);
+//
+//     return crc;
+// }
 
 uint64_t sumHash(const char* key, size_t length) {
     uint64_t sum = 0;

@@ -8,20 +8,20 @@
 #include "llistDump.h"
 
 LlistErrors llistCtor(LinkedList* llist, int capacity) {
-    warning(llist, NULL_POINTER_ERROR);
-    warning(capacity > 0, VALUE_ERROR);
+    warning(llist, LINKED_LIST_NULL_PTR_ERROR);
+    warning(capacity > 0, LINKED_LIST_VALUE_ERROR);
 
     int actual_capacity = capacity + 1;
-    llist->data = (int*)calloc(capacity, sizeof(int));
-    warning(llist->data, ALLOCATION_ERROR);
+    llist->data = (Element*)calloc(actual_capacity, sizeof(Element));
+    warning(llist->data, LINKED_LIST_ALLOCATION_ERROR);
 
-    llist->next = (int*)calloc(capacity, sizeof(int));
-    warning(llist->next, ALLOCATION_ERROR);
+    llist->next = (int*)calloc(actual_capacity, sizeof(int));
+    warning(llist->next, LINKED_LIST_ALLOCATION_ERROR);
 
-    llist->prev = (int*)calloc(capacity, sizeof(int));
-    warning(llist->prev, ALLOCATION_ERROR);
+    llist->prev = (int*)calloc(actual_capacity, sizeof(int));
+    warning(llist->prev, LINKED_LIST_ALLOCATION_ERROR);
 
-    llist->capacity = actual_capacity;
+    llist->capacity = capacity;
     llist->size     = 0;
     llist->free     = 1;
 
@@ -32,34 +32,41 @@ LlistErrors llistCtor(LinkedList* llist, int capacity) {
 
     for(int i = 1; i < llist->capacity; i++) {
         llist->prev[i] = -1;
-        llist->data[i] = -1;
+        llist->data[i].key  = NULL;
+        llist->data[i].hash = (uint64_t)-1;
     }
 
     llist->prev[0] = 0;
     llist->next[0] = 0;
 
-    setDumpFile(llist);
+    // setDumpFile(llist);
 
-    return SUCCESS;
+    return LINKED_LIST_SUCCESS;
 }
 
 LlistErrors llistResize(LinkedList* llist, int new_capacity) {
-    warning(llist, NULL_POINTER_ERROR);
-    warning(new_capacity > llist->capacity, VALUE_ERROR);
+    warning(llist, LINKED_LIST_NULL_PTR_ERROR);
+    warning(new_capacity > llist->capacity, LINKED_LIST_VALUE_ERROR);
 
     int old_capacity = llist->capacity;
 
-    int* new_data = (int*)realloc(llist->data, new_capacity * sizeof(int));
+    Element* new_data = (Element*)realloc(llist->data, new_capacity * sizeof(Element));
+    warning(new_data, LINKED_LIST_ALLOCATION_ERROR);
+
     int* new_next = (int*)realloc(llist->next, new_capacity * sizeof(int));
+    warning(new_next, LINKED_LIST_ALLOCATION_ERROR);
+
     int* new_prev = (int*)realloc(llist->prev, new_capacity * sizeof(int));
+    warning(new_prev, LINKED_LIST_ALLOCATION_ERROR);
 
     llist->data = new_data;
     llist->next = new_next;
     llist->prev = new_prev;
 
     for (int i = old_capacity; i < new_capacity; ++i) {
-        llist->data[i] = -1;
         llist->prev[i] = -1;
+        llist->data[i].key  = NULL;
+        llist->data[i].hash = (uint64_t)-1;
     }
 
     for (int i = old_capacity; i < new_capacity - 2; ++i) {
@@ -71,41 +78,42 @@ LlistErrors llistResize(LinkedList* llist, int new_capacity) {
 
     llist->capacity = new_capacity;
 
-    return SUCCESS;
+    return LINKED_LIST_SUCCESS;
 }
 
 
-LlistErrors llistPushBack(LinkedList* llist, int element) {
-    llistInsertAfter(llist, element, llist->prev[0]);
-
-    return SUCCESS;
+LlistErrors llistPushBack(LinkedList* llist, Element* element) {
+    return llistInsertAfter(llist, element, llist->prev[0]);
 }
 
 LlistErrors llistPopBack(LinkedList* llist) {
-    warning(llist, NULL_POINTER_ERROR);
+    warning(llist, LINKED_LIST_NULL_PTR_ERROR);
+
     if(llist->size == 0) {
         color_printf(RED_COLOR, BOLD, "ERROR: Linked-List is empty\n");
-
-        warning(llist->size != 0, NULL_POINTER_ERROR);
+        warning(llist->size != 0, LINKED_LIST_NULL_PTR_ERROR);
     }
 
-    llistErase(llist, llist->prev[0]);
-
-    return SUCCESS;
+    return llistErase(llist, llist->prev[0]);
 }
 
-LlistErrors llistInsertAfter(LinkedList* llist, int element, int index) {
+LlistErrors llistInsertAfter(LinkedList* llist, Element* element, int index) {
+    warning(llist, LINKED_LIST_NULL_PTR_ERROR);
+    warning(element, LINKED_LIST_NULL_PTR_ERROR);
+
     if (llist->free == 0) {
-        llistResize(llist, llist->capacity * 2);
+        LlistErrors resize_status = LINKED_LIST_SUCCESS;
+        warning((resize_status = llistResize(llist, llist->capacity * 2)) == LINKED_LIST_SUCCESS, resize_status);
     }
 
     if(llist->prev[index] == -1) {
         color_printf(RED_COLOR, BOLD, "ERROR: You trying to insert element after free cell\n");
-        warning(llist->prev[index] != -1, INPUT_ERROR);
+        warning(llist->prev[index] != -1, LINKED_LIST_INPUT_ERROR);
     }
 
     //Add element to data
-    llist->data[llist->free] = element;
+    llist->data[llist->free].key  = element->key;
+    llist->data[llist->free].hash = element->hash;
 
     //Connect index+1 element with first free cell (prev = free)
     llist->prev[llist->next[index]] = llist->free;
@@ -125,27 +133,25 @@ LlistErrors llistInsertAfter(LinkedList* llist, int element, int index) {
     //Size up
     llist->size++;
 
-    return SUCCESS;
+    return LINKED_LIST_SUCCESS;
 }
 
-LlistErrors llistPushFront(LinkedList* llist, int element) {
-    warning(llist, NULL_POINTER_ERROR);
+LlistErrors llistPushFront(LinkedList* llist, Element* element) {
+    warning(llist, LINKED_LIST_NULL_PTR_ERROR);
     if(llist->free == 0) {
         color_printf(RED_COLOR, BOLD, "ERROR: Linked-List is full\n");
-
-        warning(llist->free != 0, VALUE_ERROR);
+        warning(llist->free != 0, LINKED_LIST_VALUE_ERROR);
     }
 
-    llistInsertAfter(llist, element, 0);
-
-    return SUCCESS;
+    return llistInsertAfter(llist, element, 0);
 }
 
 LlistErrors llistErase(LinkedList* llist, int index) {
-    warning(llist, NULL_POINTER_ERROR);
+    warning(llist, LINKED_LIST_NULL_PTR_ERROR);
 
     //Poison data value
-    llist->data[index] = -1;
+    llist->data[index].key = NULL;
+    llist->data[index].hash = (uint64_t)-1;
 
     //Next of prev becomes next of deleted index
     llist->next[llist->prev[index]] = llist->next[index];
@@ -165,16 +171,23 @@ LlistErrors llistErase(LinkedList* llist, int index) {
     //Size down
     llist->size--;
 
-    return SUCCESS;
+    return LINKED_LIST_SUCCESS;
 }
 
 LlistErrors llistDtor(LinkedList* llist) {
+    for(int i = 0; i < llist->capacity; i++) {
+        if(llist->data[i].key) {
+            FREE(llist->data[i].key);
+        }
+    }
+
     llist->capacity = 0;
     llist->free     = 0;
     llist->size     = 0;
-    free(llist->data);
-    free(llist->next);
-    free(llist->prev);
 
-    return SUCCESS;
+    FREE(llist->data);
+    FREE(llist->next);
+    FREE(llist->prev);
+
+    return LINKED_LIST_SUCCESS;
 }

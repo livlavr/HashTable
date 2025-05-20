@@ -11,11 +11,11 @@
 static const size_t SIZE_OF_BUFFER = 40;
 
 LlistErrors llistDump(LinkedList* llist) {
-    warning(llist, NULL_POINTER_ERROR);
+    warning(llist, LINKED_LIST_NULL_PTR_ERROR);
 
     FILE* dump_file = fopen("Dump-source/dump.dot", "w");
 
-    warning(dump_file, FILE_OPEN_ERROR);
+    warning(dump_file, LINKED_LIST_FILE_OPEN_ERROR);
 
     //Header of graphviz file
     fprintf(dump_file, "digraph llist{\nsplines=ortho;\nrankdir=HR;\nnodesep=0.4;"
@@ -25,13 +25,13 @@ LlistErrors llistDump(LinkedList* llist) {
 
     //Output zero index (service element)
     fprintf(dump_file, "0 ");
-    fprintf(dump_file, "[style = \"filled, rounded\", fillcolor=\"#1fcbf2\", label=\" {index = %d | data = %d | next = %d | prev = %d}\" ];\n", 0, llist->data[0], llist->next[0], llist->prev[0]);
+    fprintf(dump_file, "[style = \"filled, rounded\", fillcolor=\"#1fcbf2\", label=\" {index = %d | data = %s | next = %d | prev = %d}\" ];\n", 0, llist->data[0].key, llist->next[0], llist->prev[0]);
 
     //Output all other elements
     int i = 1;
     for(i = 1; i < llist->capacity; i++) {
         fprintf(dump_file, "%d ", i);
-        fprintf(dump_file, "[style = \"filled, rounded\", fillcolor=\"#f2291f\", label=\" {index = %d | data = %d | next = %d | prev = %d}\" ];\n", i, llist->data[i], llist->next[i], llist->prev[i]);
+        fprintf(dump_file, "[style = \"filled, rounded\", fillcolor=\"#f2291f\", label=\" {index = %d | data = %s | next = %d | prev = %d}\" ];\n", i, llist->data[i].key, llist->next[i], llist->prev[i]);
     }
 
     //Output size of linked-list
@@ -49,7 +49,7 @@ LlistErrors llistDump(LinkedList* llist) {
             color_printf(RED_COLOR, BOLD, "ERROR: too many iterations in Dump\n");
             color_printf(RED_COLOR, BOLD, "Probably you did invalid operation (Used bad index for example)\n");
 
-            warning(count_elements < llist->capacity, PROGRAM_ERROR);
+            warning(count_elements < llist->capacity, LINKED_LIST_PROGRAM_ERROR);
         }
         fprintf(dump_file, "%d ", i);
         fprintf(dump_file, "[style = \"filled, rounded\", fillcolor=\"#26e5a2\"];\n");
@@ -86,7 +86,7 @@ LlistErrors llistDump(LinkedList* llist) {
             color_printf(RED_COLOR, BOLD, "ERROR: too many iterations in Dump\n");
             color_printf(RED_COLOR, BOLD, "Probably you did invalid operation (Used bad index for example)\n");
 
-            warning(count_elements < llist->capacity, PROGRAM_ERROR);
+            warning(count_elements < llist->capacity, LINKED_LIST_PROGRAM_ERROR);
         }
         fprintf(dump_file, "%d->%d;\n", i, llist->prev[i]);
         i = llist->prev[i];
@@ -103,16 +103,16 @@ LlistErrors llistDump(LinkedList* llist) {
 
     system(system_duffer);
 
-    return SUCCESS;
+    return LINKED_LIST_SUCCESS;
 }
 
 LlistErrors setDumpFile(LinkedList* llist)
 {
-    warning(llist, NULL_POINTER_ERROR);
+    warning(llist, LINKED_LIST_NULL_PTR_ERROR);
 
     char *buffer = (char*)calloc(SIZE_OF_BUFFER, sizeof(char));
 
-    warning(buffer, ALLOCATION_ERROR);
+    warning(buffer, LINKED_LIST_ALLOCATION_ERROR);
 
     time_t my_time          = time(NULL);
     char*  time             = ctime(&my_time);
@@ -130,11 +130,11 @@ LlistErrors setDumpFile(LinkedList* llist)
 
     llist->dump_file = buffer;
 
-    return SUCCESS;
+    return LINKED_LIST_SUCCESS;
 }
 
 inline LlistErrors processFilename(char* filename) {
-    warning(filename, NULL_POINTER_ERROR);
+    warning(filename, LINKED_LIST_NULL_PTR_ERROR);
 
     char* filename_ptr = filename;
     filename_ptr = strchr(filename_ptr, ' ');
@@ -144,5 +144,5 @@ inline LlistErrors processFilename(char* filename) {
         filename_ptr  = strchr(filename_ptr, ' ');
     }
 
-    return SUCCESS;
+    return LINKED_LIST_SUCCESS;
 }

@@ -14,7 +14,7 @@ message(STATUS "C++ standard ${CMAKE_CXX_STANDARD}")
 project(HashFunctions)
 
 add_library(HashFunctions
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/StringHash.cpp
+${CMAKE_CURRENT_SOURCE_DIR}/src/StringHash.cpp
 )
 
 target_include_directories(HashFunctions PUBLIC
