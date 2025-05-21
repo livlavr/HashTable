@@ -26,7 +26,7 @@
 
 В данной работе проводится оптимизация реализации хеш-таблицы с разрешением коллизий методом цепочек. Основная цель — системный подход к повышению производительности поиска ключа через итеративное профилирование и применение как программных, так и платформо-зависимых техник.
 
-> \[!NOTE]
+> [!NOTE]
 > Выбран load factor ~ 7, в учебных целях для увеличения числа `strcmp`. В реальных проектах такой высокий load factor обычно не используется.
 
 Длина ключей ограничена 32 байтами.
@@ -43,7 +43,8 @@
 6. Программные и аппаратно-зависимые оптимизации с последующим анализом прироста производительности.
 7. Прекращение оптимизаций, когда прирост становится незначительным в сравнении с ухудшением читаемости и структуры кода.
 
-> \[!NOTE] Перед бенчмарками выполняется `NUMBER_OF_WARMUP_TESTS` прогонов для прогрева кешей и установления стабильной температуры процессора.
+> [!NOTE]
+> Перед бенчмарками выполняется `NUMBER_OF_WARMUP_TESTS` прогонов для прогрева кешей и установления стабильной температуры процессора.
 
 ---
 
@@ -97,13 +98,11 @@ struct LinkedList {
 1. **Файл ключей:** слова по одному, длина ≤32 байт, выравнивание 32.
 2. **Разогрев:** 1000 поисков без учета времени.
 3. **Основная фаза:** 10000 вызовов `chainHashTableSearch`, замеры через `__rdtsc`.
-4. **Анализ:** среднее время, σ‑отклонение, фильтрация выбросов (>3σ)
+4. **Анализ результатов:**
 - Вычисление среднего времени
 $\mu = \frac{1}{n}\sum_{i=1}^{n} t_i$
 - Вычисление дисперсии и стандартного отклонения:
 $\sigma^2 = \frac{1}{n}\sum_{i=1}^{n} (t_i - \mu)^2$
-$\quad$
-$\sigma = \sqrt{\sigma^2}$
 
 5. **Сравнение версий:** $(T_{prev} - T_{curr}) / T_{prev} * 100\%$
 
@@ -142,9 +141,10 @@ uint64_t crc32HashIntrinsics(const char* key, size_t length);
 * **График времени поиска:**
 ![sumHash](./HashFunctionsComparing/Plot/img/SumHash.png)
 * **Таблица результатов:**
+
 | Функция | Время построения, ticks | Дисперсия  |
-| ------- | ----------------- | ---------- |
-| sumHash |   $73,2 * 10^5$         | $3.49$       |
+| ------- |    -----------------    | ---------- |
+| sumHash |      $73,2 * 10^5$      |   $3.49$   |
 
 ```c
 uint64_t sumHash(const char* key, size_t length) {
@@ -163,10 +163,12 @@ uint64_t sumHash(const char* key, size_t length) {
 
 * **График времени поиска:**
 ![polynomialHash](./HashFunctionsComparing/Plot/img/PolynomialHash.png)
+
 * **Таблица результатов:**
+
 | Функция        | Среднее время, мс | Дисперсия  |
 | -------------- | ----------------- | ---------- |
-| polynomialHash |   $40,9 * 10^5$         | $3.13$       |
+| polynomialHash |   $40,9 * 10^5$   | $3.13$     |
 
 ```c
 uint64_t polynomialHash(const char* key, size_t length) {
@@ -191,7 +193,7 @@ uint64_t polynomialHash(const char* key, size_t length) {
 * **Таблица результатов:**
 | Функция   | Среднее время, мс | Дисперсия  |
 | --------- | ----------------- | ---------- |
-| crc32Hash |   $343,7 * 10^5$         | $3.31$       |
+| crc32Hash |   $343,7 * 10^5$  | $3.31$     |
 
 ```c
 const uint64_t Polynomial = 0xEDB88320;
@@ -224,7 +226,7 @@ uint64_t crc32Hash(const char* key, size_t length) {
 
 | Функция            | Среднее время, мс | Дисперсия  |
 | ------------------ | ----------------- | ---------- |
-| crc32HashOptimized |   $125,8 * 10^5$  | $3.31$       |
+| crc32HashOptimized |   $125,8 * 10^5$  | $3.31$     |
 
 ```c
 uint64_t crc32HashOptimized(const char* key, size_t length) {
@@ -242,7 +244,7 @@ uint64_t crc32HashOptimized(const char* key, size_t length) {
 ```
 ---
 
-### crc32HashIntrinsics
+<!-- ### crc32HashIntrinsics
 
 * **График времени поиска:**
 ![crc32HashIntrinsics](./HashFunctionsComparing/Plot/img/Crc32HashIntrinsics.png)
@@ -250,7 +252,75 @@ uint64_t crc32HashOptimized(const char* key, size_t length) {
 
 | Функция             | Среднее время, мс | Дисперсия  |
 | ------------------- | ----------------- | ---------- |
-| crc32HashIntrinsics |   $31,4 * 10^5$  | $3.22$     |
+| crc32HashIntrinsics |   $31,4 * 10^5$  | $3.22$      |
+
+```c
+uint64_t crc32HashIntrinsics(const char* key, size_t length) {
+    uint64_t crc = 0xFFFFFFFF;
+
+    uint64_t string_key1 = 0;
+    uint64_t string_key2 = 0;
+    uint64_t string_key3 = 0;
+    uint64_t string_key4 = 0;
+
+    memcpy(&string_key1, key + 0, 8);
+    memcpy(&string_key2, key + 8, 8);
+    memcpy(&string_key3, key + 16, 8);
+    memcpy(&string_key4, key + 24, 8);
+
+    crc = _mm_crc32_u64(crc, string_key1);
+    crc = _mm_crc32_u64(crc, string_key2);
+    crc = _mm_crc32_u64(crc, string_key3);
+    crc = _mm_crc32_u64(crc, string_key4);
+
+    return crc;
+}
+``` -->
+
+---
+
+По результатам бенчмарков хеш-функций была выбрана `polynomialHash`. Она продемонстрировала оптимальное соотношение времени формирования таблицы и распределения.
+
+## Оптимизация: этапы и результаты
+
+### Версия v0 — без оптимизаций (polynomialHash) (`-g`)
+
+* **Среднее время (10000 поисков):** $6735 * 10^4$ ticks
+* **Улучшение:** 0% (базовая версия)
+* **Дамп Cachegrind (упрощенный):**
+
+```
+31,837,574,916 (46.10%) polynomialHash(char const*, unsigned long)
+20,026,664,518 (29.00%) chainHashTableSearch(ChainHashTable*, char const*)
+14,558,983,709 (21.08%) ./string/../sysdeps/x86_64/multiarch/strcmp-avx2.S:__strcmp_avx2
+```
+
+### Версия v1 — компиляторные флаги (polynomialHash) `-O3`
+
+* **Флаги:** `-O3 -std=c++20 -march=native -mtune=native` //TODO нужны ли все флаги?
+* **Среднее время:** $359 * 10^4$ ticks
+* **Улучшение относительно `-Odefault`:** на *X*%
+* **Улучшение относительно предыдущей версии:** *X*% относительно v0
+* **Дамп Cachegrind:**
+
+```
+25,780,649,935 (48.99%) polynomialHash(char const*, unsigned long)
+14,558,983,709 (27.67%) ./string/../sysdeps/x86_64/multiarch/strcmp-avx2.S:__strcmp_avx2
+10,381,934,112 (19.73%) chainHashTableSearch(ChainHashTable*, char const*)
+```
+Как можно заметить `polynomialHash` является самым узким местом программы. Чтобы оптимизировать хэш функцию используем огроничения, наложенные на входные данные **все слова короче 32 символов**. Перепишем функцию `crc32Hash` на Intel Intrinsics.
+
+### Версия v2 — `crc32HashIntrinsics`
+
+#### crc32HashIntrinsics
+
+* **График времени поиска:**
+![crc32HashIntrinsics](./HashFunctionsComparing/Plot/img/Crc32HashIntrinsics.png)
+* **Таблица результатов:**
+
+| Функция             | Среднее время, мс | Дисперсия  |
+| ------------------- | ----------------- | ---------- |
+| crc32HashIntrinsics |   $31,4 * 10^5$  | $3.22$      |
 
 ```c
 uint64_t crc32HashIntrinsics(const char* key, size_t length) {
@@ -275,69 +345,48 @@ uint64_t crc32HashIntrinsics(const char* key, size_t length) {
 }
 ```
 
----
-
-По результатам бенчмарков хеш-функций была выбрана crc32HashIntrinsics. Она продемонстрировала оптимальное соотношение времени формирования таблицы и распределения.
-
-## Оптимизация: этапы и результаты
-
-### Версия v0 — без оптимизаций (`-Odefault`)
-
-* **Среднее время (10000 поисков):** 2494760 ticks
-* **Улучшение:** 0% (базовая версия)
-* **Дамп Cachegrind:**
-
-```
-
-```
-
-### Версия v1 — компиляторные флаги `-O3`
-
-* **Флаги:** `-O3 -march=native -g`
-* **Среднее время:** *insert time* ticks
-* **Улучшение относительно `-Odefault`:** *X1*%
-* **Улучшение относительно предыдущей версии:** *X*% относительно v0
-* **Дамп Cachegrind:**
-
-```
-
-```
-
-### Версия v2 — оптимизация `strcmp`
-
-* **Описание:** ручная развёртка или замена `strcmp` для ключей ≤32 байт.
-* **Среднее время:** *insert time* ticks
-* **Улучшение относительно `-Odefault`:** *X2*%
-* **Улучшение относительно предыдущей версии:** *X*% относительно v1
-* **Дамп Cachegrind:**
-
-```
-
-```
-
-### Версия v3 — `crc32` optimized
-
-* **Описание:** таблица и unroll в реализации CRC32.
-* **Среднее время:** *insert time* ticks
-* **Улучшение относительно `-Odefault`:** *X3*%
-* **Улучшение относительно предыдущей версии:** *X*% относительно v2
-* **Дамп Cachegrind:**
-
-```
-
-```
-
-### Версия v4 — `crc32` intrinsics
-
-* **Описание:** `_mm_crc32_u64`/`_mm_crc32_u32`.
-* **Среднее время:** *insert time* ticks
+* **Описание:** Хэш функция использует векторные инструкции, `_mm_crc32_u64`/`_mm_crc32_u32`.
+* **Среднее время:** $186 * 10^4$ ticks
 * **Улучшение относительно `-Odefault`:** *X4*%
 * **Улучшение относительно предыдущей версии:** *X*% относительно v3
 * **Дамп Cachegrind:**
 
 ```
+14,647,103,424 (52.46%) ./string/../sysdeps/x86_64/multiarch/strcmp-avx2.S:__strcmp_avx2
+10,633,125,198 (38.08%) chainHashTableSearch(ChainHashTable*, char const*)
+   735,000,000 ( 2.63%) crc32HashIntrinsics(char const*, unsigned long)
+   630,192,058 ( 2.26%) hashTableSearchTest(ChainHashTable*, Buffer<char*>*)
+```
+
+### Версия v3 — оптимизация `strcmp`
+
+```c
+    asm volatile (
+        "vmovdqu (%1), %%ymm0           \n\t" // load 32 bytes from ptr1 to ymm0
+        "vmovdqu (%2), %%ymm1           \n\t" // load 32 bytes from ptr2 to ymm1
+        "vpcmpeqb %%ymm0, %%ymm1, %%ymm0\n\t" // ymm0 = (ymm0 == [ptr2])
+        "vpmovmskb %%ymm0, %0           \n\t" //  cmp_result = movemask(ymm0)
+        "vzeroupper                     \n\t"
+        : "=r"(cmp_result)                    // вывод в любой регистр
+        : "r"(llist->data[index].key),        // %1 = ptr1
+          "r"(key)                            // %2 = ptr2
+        : "ymm0", "ymm1", "memory"            // clobber: ymm0/1, memory
+    );
+```
+
+* **Описание:** `assembly inline strcmp` для ключей ≤32 байт.
+* **Среднее время:** $143 * 10^4$ ticks
+* **Улучшение относительно `-Odefault`:** *X2*%
+* **Улучшение относительно предыдущей версии:** *X*% относительно v1
+* **Дамп Cachegrind:**
 
 ```
+12,640,829,997 (90.18%) chainHashTableSearch(ChainHashTable*, char const*)
+   734,999,993 ( 5.24%) crc32HashIntrinsics(char const*, unsigned long)
+   630,192,059 ( 4.50%) hashTableSearchTest(ChainHashTable*, Buffer<char*>*)
+```
+
+### Версия v4 — оптимизация `strcmp`
 
 ---
 

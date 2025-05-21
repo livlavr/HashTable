@@ -1,0 +1,34 @@
+--------------------------------------------------------------------------------
+Profile data file 'cachegrind.out.181206'
+--------------------------------------------------------------------------------
+I1 cache:         32768 B, 64 B, 8-way associative
+D1 cache:         32768 B, 64 B, 8-way associative
+LL cache:         16777216 B, 64 B, 16-way associative
+Profiled target:  ./bin/HashTableBenchmark
+Events recorded:  Ir I1mr ILmr Dr D1mr DLmr Dw D1mw DLmw
+Events shown:     Ir I1mr ILmr Dr D1mr DLmr Dw D1mw DLmw
+Event sort order: Ir I1mr ILmr Dr D1mr DLmr Dw D1mw DLmw
+Thresholds:       99 0 0 0 0 0 0 0 0
+Include dirs:     
+User annotated:   
+Auto-annotation:  on
+
+--------------------------------------------------------------------------------
+Ir                      I1mr           ILmr           Dr                     D1mr                   DLmr           Dw                     D1mw            DLmw            
+--------------------------------------------------------------------------------
+27,921,775,167 (100.0%) 1,796 (100.0%) 1,754 (100.0%) 7,182,241,334 (100.0%) 1,202,767,882 (100.0%) 4,199 (100.0%) 1,473,849,703 (100.0%) 36,454 (100.0%) 24,103 (100.0%)  PROGRAM TOTALS
+
+--------------------------------------------------------------------------------
+Ir                      I1mr        ILmr        Dr                     D1mr                 DLmr           Dw                     D1mw            DLmw             file:function
+--------------------------------------------------------------------------------
+14,647,103,424 (52.46%)  7 ( 0.39%)  7 ( 0.40%) 3,286,974,484 (45.77%) 576,094,712 (47.90%)     0                      0               0               0           ./string/../sysdeps/x86_64/multiarch/strcmp-avx2.S:__strcmp_avx2
+10,633,125,198 (38.08%)  3 ( 0.17%)  3 ( 0.17%) 2,735,030,748 (38.08%) 574,037,293 (47.73%)     0          1,367,516,388 (92.79%)      1 ( 0.00%)      0           ???:chainHashTableSearch(ChainHashTable*, char const*)
+ 1,265,277,268 ( 4.53%) 41 ( 2.28%) 33 ( 1.88%)   632,638,600 ( 8.81%)          38 ( 0.00%)     0                     20 ( 0.00%)      1 ( 0.00%)      1 ( 0.00%)  ???:???
+   735,000,000 ( 2.63%)  2 ( 0.11%)  2 ( 0.11%)   525,000,000 ( 7.31%)  52,501,897 ( 4.37%)     0                      0               0               0           ???:crc32HashIntrinsics(char const*, unsigned long)
+   630,192,058 ( 2.26%)  8 ( 0.45%)  8 ( 0.46%)        30,011 ( 0.00%)       1,252 ( 0.00%)     0            104,990,014 ( 7.12%)      0               0           ???:hashTableSearchTest(ChainHashTable*, Buffer<char*>*)
+
+--------------------------------------------------------------------------------
+The following files chosen for auto-annotation could not be found:
+--------------------------------------------------------------------------------
+  ./string/../sysdeps/x86_64/multiarch/strcmp-avx2.S
+

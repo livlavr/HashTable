@@ -39,6 +39,7 @@ void hashTableSearchTest(ChainHashTable* hash_table, Buffer<char*>* lines) {
             // printf("%d/%d\r", test_index, lines_number);
             // printf("<search: %s>\n",     &(keys[word_index * 32]));
             // printf("<<%lu>>\n",   hash_table->hashFunction(&(keys[word_index * 32]), 32) % hash_table->capacity);
+            // printf("%d", chainHashTableSearch(hash_table, &(keys[word_index * 32])));
             chainHashTableSearch(hash_table, &(keys[word_index * 32]));
         }
     }
@@ -64,7 +65,9 @@ void hashTableSearchTest(ChainHashTable* hash_table, Buffer<char*>* lines) {
 
 void fillChainHashTable(ChainHashTable* hash_table, Buffer<char*>* lines) {
     int lines_number = lines->size;
+    char key_32[32] = "";
     for(int i = 1; i < lines_number; i++) {
-        chainHashTableInsert(hash_table, lines->data[i]);
+        strncpy(key_32, lines->data[i], 32);
+        chainHashTableInsert(hash_table, key_32);
     }
 }

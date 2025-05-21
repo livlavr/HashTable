@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <immintrin.h>
 
 #include "llist.h"
 #include "llistDump.h"
@@ -10,7 +11,9 @@
 
 static const int CTOR_LINKED_LIST_CAPACITY = 20;
 static const int MAX_WORD_LENGTH           = 32;
-#define DEFAULT_HASH_FUNCTION crc32HashIntrinsics;
+#ifndef DEFAULT_HASH_FUNCTION
+    #define DEFAULT_HASH_FUNCTION crc32HashIntrinsics;
+#endif
 
 ChainHashTableErrors chainHashTableCtor(ChainHashTable* hash_table, int ctor_capacity) {
     warning(hash_table,        CHAIN_NULL_PTR_ERROR);
@@ -127,7 +130,21 @@ ChainHashTableSearchStatus chainHashTableSearch(ChainHashTable* hash_table, cons
         index = llist->next[index];
         // printf("llist->data[index].key: %s\n", llist->data[index].key);
         // printf("key: %s\n", key);
-        if (strcmp(llist->data[index].key, key) == 0) {
+        int cmp_result = 0;
+
+        asm volatile (
+            "vmovdqu (%1), %%ymm0           \n\t" // load 32 bytes from ptr1 to ymm0
+            "vmovdqu (%2), %%ymm1           \n\t" // load 32 bytes from ptr2 to ymm1
+            "vpcmpeqb %%ymm0, %%ymm1, %%ymm0\n\t" // ymm0 = (ymm0 == [ptr2])
+            "vpmovmskb %%ymm0, %0           \n\t" //  cmp_result = movemask(ymm0)
+            "vzeroupper                     \n\t"
+            : "=r"(cmp_result)                    // вывод в любой регистр
+            : "r"(llist->data[index].key),        // %1 = ptr1
+              "r"(key)                            // %2 = ptr2
+            : "ymm0", "ymm1", "memory"            // clobber: ymm0/1, memory
+        );
+
+        if (cmp_result == 0xFFFFFFFF) {
             // printf("FOUND\n");
             return FOUND;
         }

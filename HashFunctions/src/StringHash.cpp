@@ -4,6 +4,9 @@
 #include <nmmintrin.h>
 
 #include "StringHash.hpp"
+#include "custom_asserts.h"
+
+#define INTRINSICS_SUPPORTED
 
 const uint64_t Polynomial = 0xEDB88320;
 
@@ -37,26 +40,40 @@ uint64_t crc32HashOptimized(const char* key, size_t length) {
     return ~crc;
 }
 
-uint64_t crc32HashIntrinsics(const char* key, size_t length) {
-    uint64_t crc = 0xFFFFFFFF;
+#ifdef INTRINSICS_SUPPORTED
+    #define CRC32INTRINSICS()                                                 \
+        __attribute__((target("avx2")))                                       \
+        uint64_t crc32HashIntrinsics(const char* key, size_t length) {        \
+            uint64_t crc = 0xFFFFFFFF;                                        \
+                                                                              \
+            uint64_t string_key1 = 0;                                         \
+            uint64_t string_key2 = 0;                                         \
+            uint64_t string_key3 = 0;                                         \
+            uint64_t string_key4 = 0;                                         \
+                                                                              \
+            memcpy(&string_key1, key + 0, 8);                                 \
+            memcpy(&string_key2, key + 8, 8);                                 \
+            memcpy(&string_key3, key + 16, 8);                                \
+            memcpy(&string_key4, key + 24, 8);                                \
+                                                                              \
+            crc = _mm_crc32_u64(crc, string_key1);                            \
+            crc = _mm_crc32_u64(crc, string_key2);                            \
+            crc = _mm_crc32_u64(crc, string_key3);                            \
+            crc = _mm_crc32_u64(crc, string_key4);                            \
+                                                                              \
+            return crc;                                                       \
+        }
+#else
+    #define CRC32INTRINSICS()                                                 \
+        uint64_t crc32HashIntrinsics(const char* key, size_t length) {        \
+            customAssert(false, "Please change CMAKE_BUILD_TYPE to Release"); \
+                                                                              \
+            return 0;                                                         \
+        }
+#endif
 
-    uint64_t string_key1 = 0;
-    uint64_t string_key2 = 0;
-    uint64_t string_key3 = 0;
-    uint64_t string_key4 = 0;
-
-    memcpy(&string_key1, key + 0, 8);
-    memcpy(&string_key2, key + 8, 8);
-    memcpy(&string_key3, key + 16, 8);
-    memcpy(&string_key4, key + 24, 8);
-
-    crc = _mm_crc32_u64(crc, string_key1);
-    crc = _mm_crc32_u64(crc, string_key2);
-    crc = _mm_crc32_u64(crc, string_key3);
-    crc = _mm_crc32_u64(crc, string_key4);
-
-    return crc;
-}
+CRC32INTRINSICS()
+#undef CRC32INTRINSICS
 
 uint64_t sumHash(const char* key, size_t length) {
     uint64_t sum = 0;
