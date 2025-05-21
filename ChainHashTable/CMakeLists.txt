@@ -22,10 +22,10 @@ add_library(HashTable
 ${CMAKE_CURRENT_SOURCE_DIR}/src/ChainHashTable.cpp
 )
 
-if(DEFINED DEFAULT_HASH_FUNCTION)
-    target_compile_definitions(HashTable PRIVATE DEFAULT_HASH_FUNCTION=${DEFAULT_HASH_FUNCTION})
+if(DEFINED HASH_FUNCTION)
+    target_compile_definitions(HashTable PRIVATE HASH_FUNCTION=${HASH_FUNCTION})
 else()
-    target_compile_definitions(HashTable PRIVATE DEFAULT_HASH_FUNCTION=crc32HashIntrinsics)
+    target_compile_definitions(HashTable PRIVATE HASH_FUNCTION=crc32HashIntrinsics)
 endif()
 
 target_include_directories(HashTable PUBLIC

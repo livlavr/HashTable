@@ -13,7 +13,7 @@
 9. [Оптимизация: этапы и результаты](#оптимизация-этапы-и-результаты)
 
    1. [Версия v0 — без оптимизаций (`-Odefault`)](#версия-v0-—-без-оптимизаций--odefault-)
-   2. [Версия v1 — компиляторные флаги `-O3`](#версия-v1-—-компиляторные-флаги--o3-)
+   2. [Версия v1 — флаги компиляции `-O3`](#версия-v1-—-флаги-компиляции--o3-)
    3. [Версия v2 — оптимизация `strcmp`](#версия-v2-—-оптимизация-strcmp)
    4. [Версия v3 — `crc32` optimized](#версия-v3---crc32-optimized)
    5. [Версия v4 — `crc32` intrinsics](#версия-v4---crc32-intrinsics)
@@ -32,6 +32,58 @@
 Длина ключей ограничена 32 байтами.
 
 ---
+
+## Сборка и запуск проекта
+
+Для сборки проекта выполните следующие шаги из корневой папки репозитория:
+
+1. **Создать директорию для сборки**
+```bash
+mkdir -p build
+```
+
+2. **Запустить CMake с нужными опциями**
+
+```bash
+cmake \
+    -DHASH_FUNCTION=<выбранная_хэш_функция> \
+    -DCMAKE_BUILD_TYPE=<конфигурация> \
+    -S . -B build
+```
+
+* **Параметр `HASH_FUNCTION`** — выбирает алгоритм хеширования:
+
+    * `sumHash`
+    * `polynomialHash`
+    * `crc32Hash`
+    * `crc32HashOptimized`
+    * `crc32HashIntrinsics`
+* **Параметр `CMAKE_BUILD_TYPE`** — конфигурация сборки:
+
+    | Опция     | Описание                                | Флаги компилятора                            |
+    | --------- | --------------------------------------- | -------------------------------------------- |
+    | `Debug`   | Отладочная сборка                       | `-O0 -g -Wall -Wextra …` (см. `DEBUG_FLAGS`) |
+    | `Release` | Оптимизированная сборка                 | `-O3 -march=native -mtune=native -mavx2`     |
+    | `Default` | Общая конфигурация по умолчанию (Debug) | `-g -std=c++20 -march=native -mtune=native`  |
+
+3. **Перейти в директорию сборки**
+
+```bash
+cd build
+```
+
+4. **Запустить компиляцию**
+
+```bash
+make
+```
+
+5. **Исполняемые файлы**
+   После успешной сборки все бинарники появятся в папке
+
+```
+/build/bin/
+```
 
 ## Задача
 
@@ -99,12 +151,9 @@ struct LinkedList {
 2. **Разогрев:** 1000 поисков без учета времени.
 3. **Основная фаза:** 10000 вызовов `chainHashTableSearch`, замеры через `__rdtsc`.
 4. **Анализ результатов:**
-- Вычисление среднего времени
-$\mu = \frac{1}{n}\sum_{i=1}^{n} t_i$
-- Вычисление дисперсии и стандартного отклонения:
-$\sigma^2 = \frac{1}{n}\sum_{i=1}^{n} (t_i - \mu)^2$
-
-5. **Сравнение версий:** $(T_{prev} - T_{curr}) / T_{prev} * 100\%$
+- Вычисление среднего времени: $\mu = \frac{1}{n}\sum_{i=1}^{n} t_i$
+- Вычисление дисперсии и стандартного отклонения: $\sigma^2 = \frac{1}{n}\sum_{i=1}^{n} (t_i - \mu)^2$
+- Сравнение версий: $(T_{prev} - T_{curr}) / T_{prev} * 100\%$
 
 ---
 
@@ -242,42 +291,6 @@ uint64_t crc32HashOptimized(const char* key, size_t length) {
     return ~crc;
 }
 ```
----
-
-<!-- ### crc32HashIntrinsics
-
-* **График времени поиска:**
-![crc32HashIntrinsics](./HashFunctionsComparing/Plot/img/Crc32HashIntrinsics.png)
-* **Таблица результатов:**
-
-| Функция             | Среднее время, мс | Дисперсия  |
-| ------------------- | ----------------- | ---------- |
-| crc32HashIntrinsics |   $31,4 * 10^5$  | $3.22$      |
-
-```c
-uint64_t crc32HashIntrinsics(const char* key, size_t length) {
-    uint64_t crc = 0xFFFFFFFF;
-
-    uint64_t string_key1 = 0;
-    uint64_t string_key2 = 0;
-    uint64_t string_key3 = 0;
-    uint64_t string_key4 = 0;
-
-    memcpy(&string_key1, key + 0, 8);
-    memcpy(&string_key2, key + 8, 8);
-    memcpy(&string_key3, key + 16, 8);
-    memcpy(&string_key4, key + 24, 8);
-
-    crc = _mm_crc32_u64(crc, string_key1);
-    crc = _mm_crc32_u64(crc, string_key2);
-    crc = _mm_crc32_u64(crc, string_key3);
-    crc = _mm_crc32_u64(crc, string_key4);
-
-    return crc;
-}
-``` -->
-
----
 
 По результатам бенчмарков хеш-функций была выбрана `polynomialHash`. Она продемонстрировала оптимальное соотношение времени формирования таблицы и распределения.
 
@@ -295,12 +308,12 @@ uint64_t crc32HashIntrinsics(const char* key, size_t length) {
 14,558,983,709 (21.08%) ./string/../sysdeps/x86_64/multiarch/strcmp-avx2.S:__strcmp_avx2
 ```
 
-### Версия v1 — компиляторные флаги (polynomialHash) `-O3`
+### Версия v1 — флаги компиляции (polynomialHash) `-O3`
 
 * **Флаги:** `-O3 -std=c++20 -march=native -mtune=native` //TODO нужны ли все флаги?
 * **Среднее время:** $359 * 10^4$ ticks
-* **Улучшение относительно `-Odefault`:** на *X*%
-* **Улучшение относительно предыдущей версии:** *X*% относительно v0
+* **Улучшение относительно `v1`:** -
+* **Улучшение относительно предыдущей версии:** 94.7 %
 * **Дамп Cachegrind:**
 
 ```
@@ -347,8 +360,8 @@ uint64_t crc32HashIntrinsics(const char* key, size_t length) {
 
 * **Описание:** Хэш функция использует векторные инструкции, `_mm_crc32_u64`/`_mm_crc32_u32`.
 * **Среднее время:** $186 * 10^4$ ticks
-* **Улучшение относительно `-Odefault`:** *X4*%
-* **Улучшение относительно предыдущей версии:** *X*% относительно v3
+* **Улучшение относительно `v1`:** 48.2 %
+* **Улучшение относительно предыдущей версии:** 48.2 %
 * **Дамп Cachegrind:**
 
 ```
@@ -376,8 +389,8 @@ uint64_t crc32HashIntrinsics(const char* key, size_t length) {
 
 * **Описание:** `assembly inline strcmp` для ключей ≤32 байт.
 * **Среднее время:** $143 * 10^4$ ticks
-* **Улучшение относительно `-Odefault`:** *X2*%
-* **Улучшение относительно предыдущей версии:** *X*% относительно v1
+* **Улучшение относительно `v1`:** 60.2 %
+* **Улучшение относительно предыдущей версии:** 23.1 %
 * **Дамп Cachegrind:**
 
 ```
@@ -386,10 +399,63 @@ uint64_t crc32HashIntrinsics(const char* key, size_t length) {
    630,192,059 ( 4.50%) hashTableSearchTest(ChainHashTable*, Buffer<char*>*)
 ```
 
-### Версия v4 — оптимизация `strcmp`
+### Версия v4 — оптимизация `inline hash function`
 
----
+Для того, чтобы заинлайнить функцию хэширования, добавим к определению модификатор `inline` и перенесем функцию в хедер.
+
+![alt text](image.png)
+Изучая objdump заметим, что несмотря на наши подсказки функция не была заинлайнина, поэтому нам ничего не остаётся как сделать это вручную.
+
+* **Описание:** Заменим вызов функции `crc32HashIntrinsics` через указатель на inline этой функции.
+* **Среднее время:** $120 * 10^4$ ticks
+* **Улучшение относительно `v1`:** 66.5 %
+* **Улучшение относительно предыдущей версии:** 16.1 %
+
+```c
+#define HASH_FUNCTION_INLINE(key, hash)                               \
+    hash = 0xFFFFFFFF;                                                \
+                                                                      \
+    uint64_t string_key1 = 0;                                         \
+    uint64_t string_key2 = 0;                                         \
+    uint64_t string_key3 = 0;                                         \
+    uint64_t string_key4 = 0;                                         \
+                                                                      \
+    memcpy(&string_key1, key + 0, 8);                                 \
+    memcpy(&string_key2, key + 8, 8);                                 \
+    memcpy(&string_key3, key + 16, 8);                                \
+    memcpy(&string_key4, key + 24, 8);                                \
+                                                                      \
+    hash = _mm_crc32_u64(hash, string_key1);                          \
+    hash = _mm_crc32_u64(hash, string_key2);                          \
+    hash = _mm_crc32_u64(hash, string_key3);                          \
+    hash = _mm_crc32_u64(hash, string_key4)
+```
+
+```c
+__attribute__((target("avx2")))
+ChainHashTableSearchStatus chainHashTableSearch(ChainHashTable* hash_table, const char* key) {
+    warning(hash_table, NOT_FOUND);
+
+    uint64_t hash = 0;
+    HASH_FUNCTION_INLINE(key, hash);
+    int bucket_index = hash % hash_table->capacity;
+    ...
+}
+```
 
 ## Вывод
+
+Ниже итоговая сводная таблица по всем версиям:
+
+| Версия | Ср. время (ticks·10^4) | Улучшение vs v1 | Улучшение vs пред. |
+| :----: | :-------------------: | :-------------: | :----------------: |
+| **v0 - без оптимизаций** |          6735         |         —       |          —         |
+| **v1 — флаги компиляции** |          359          |         —       |       94.7 %       |
+| **v2 - интринсики** |          186          |      48.2 %     |       48.2 %       |
+| **v3 — оптимизация strcmp** |          143          |      60.2 %     |       23.1 %       |
+| **v4 - inline хэш функции** |          120          |      66.5 %     |       16.1 %       |
+
+* **Улучшение vs v1** = $(T_1 − T_n) / T₁ × 100%$, где $T_1=359$ — время v1.
+* **Улучшение vs пред.** = $(T\_{prev} − T_n) / T_{prev} × 100%$.
 
 ---

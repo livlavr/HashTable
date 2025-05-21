@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
+#include <string.h>
 #include <nmmintrin.h>
 
 #include "StringHash.hpp"
@@ -74,6 +75,7 @@ uint64_t crc32HashOptimized(const char* key, size_t length) {
 
 CRC32INTRINSICS()
 #undef CRC32INTRINSICS
+#undef INTRINSICS_SUPPORTED
 
 uint64_t sumHash(const char* key, size_t length) {
     uint64_t sum = 0;

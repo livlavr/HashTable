@@ -11,9 +11,27 @@
 
 static const int CTOR_LINKED_LIST_CAPACITY = 20;
 static const int MAX_WORD_LENGTH           = 32;
-#ifndef DEFAULT_HASH_FUNCTION
-    #define DEFAULT_HASH_FUNCTION crc32HashIntrinsics;
+#ifndef HASH_FUNCTION
+    #define HASH_FUNCTION crc32HashIntrinsics;
 #endif
+
+#define HASH_FUNCTION_INLINE(key, hash)                               \
+    hash = 0xFFFFFFFF;                                                \
+                                                                      \
+    uint64_t string_key1 = 0;                                         \
+    uint64_t string_key2 = 0;                                         \
+    uint64_t string_key3 = 0;                                         \
+    uint64_t string_key4 = 0;                                         \
+                                                                      \
+    memcpy(&string_key1, key + 0, 8);                                 \
+    memcpy(&string_key2, key + 8, 8);                                 \
+    memcpy(&string_key3, key + 16, 8);                                \
+    memcpy(&string_key4, key + 24, 8);                                \
+                                                                      \
+    hash = _mm_crc32_u64(hash, string_key1);                          \
+    hash = _mm_crc32_u64(hash, string_key2);                          \
+    hash = _mm_crc32_u64(hash, string_key3);                          \
+    hash = _mm_crc32_u64(hash, string_key4)
 
 ChainHashTableErrors chainHashTableCtor(ChainHashTable* hash_table, int ctor_capacity) {
     warning(hash_table,        CHAIN_NULL_PTR_ERROR);
@@ -21,7 +39,7 @@ ChainHashTableErrors chainHashTableCtor(ChainHashTable* hash_table, int ctor_cap
 
     hash_table->capacity     = ctor_capacity;
     hash_table->size         = 0;
-    hash_table->hashFunction = DEFAULT_HASH_FUNCTION;
+    hash_table->hashFunction = HASH_FUNCTION;
 
     hash_table->buckets = (LinkedList**)calloc(ctor_capacity, sizeof(LinkedList*));
     warning(hash_table->buckets, CHAIN_NULL_PTR_ERROR);
@@ -34,6 +52,7 @@ ChainHashTableErrors chainHashTableCtor(ChainHashTable* hash_table, int ctor_cap
     return CHAIN_HASH_SUCCESS;
 }
 
+__attribute__((target("avx2")))
 ChainHashTableErrors chainHashTableInsert(ChainHashTable* hash_table, const char* key) {
     warning(hash_table, CHAIN_NULL_PTR_ERROR);
 
@@ -44,35 +63,14 @@ ChainHashTableErrors chainHashTableInsert(ChainHashTable* hash_table, const char
     char* allocated_key = (char*)calloc(MAX_WORD_LENGTH, sizeof(char));
     strncpy(allocated_key, key, MAX_WORD_LENGTH);
 
-    uint64_t hash = hash_table->hashFunction(allocated_key, MAX_WORD_LENGTH);
+    uint64_t hash = 0;
+    HASH_FUNCTION_INLINE(key, hash);
     int index = hash % hash_table->capacity;
 
     Element element = {.key  = allocated_key,
                        .hash = hash};
-    // printf("<insert: %s>\n",   element.key);
-    // printf("<<element.key: %d>>\n", hash_table->hashFunction(element.key, MAX_WORD_LENGTH) % hash_table->capacity);
-    // printf("<%s>\n", element.key);
-    // printf("<%d>\n", index);
-    // fprintf(stderr, "<hash_table->buckets[index] index: %d>\n", index);
-    // fprintf(stderr, "<hash_table->buckets[290]->free: %d>\n", hash_table->buckets[290]->free);
-    // fprintf(stderr, "<hash_table->buckets[290]->capacity: %d>\n", hash_table->buckets[290]->capacity);
-    // fprintf(stderr, "<hash_table->buckets[290]->next: %d>\n",     hash_table->buckets[290]->next[0]);
-    // fprintf(stderr, "<hash_table->buckets[290]->prev: %d>\n",     hash_table->buckets[290]->prev[0]);
-    // fprintf(stderr, "<hash_table->buckets[290]->size: %d>\n",     hash_table->buckets[290]->size);
-    // fprintf(stderr, "element.key: %s>\n", element.key);
 
     llistPushBack(hash_table->buckets[index], &element);
-
-    // fprintf(stderr, "AFTER PUSH BACK\n");
-    // fprintf(stderr, "<hash_table->buckets[index] index: %d>\n", index);
-    // fprintf(stderr, "<hash_table->buckets[290]->free: %d>\n", hash_table->buckets[290]->free);
-    // fprintf(stderr, "<hash_table->buckets[290]->capacity: %d>\n", hash_table->buckets[290]->capacity);
-    // fprintf(stderr, "<hash_table->buckets[290]->next: %d>\n",     hash_table->buckets[290]->next[0]);
-    // fprintf(stderr, "<hash_table->buckets[290]->prev: %d>\n",     hash_table->buckets[290]->prev[0]);
-    // fprintf(stderr, "<hash_table->buckets[290]->size: %d>\n",     hash_table->buckets[290]->size);
-    // fprintf(stderr, "element.key: %s>\n", element.key);
-
-    // printf("<%d>\n", hash_table->buckets[index]->size);
 
     (hash_table->size)++;
 
@@ -119,17 +117,17 @@ float chainHashTableGetLoadFactor(ChainHashTable* hash_table) {
     return (size / capacity);
 }
 
+__attribute__((target("avx2")))
 ChainHashTableSearchStatus chainHashTableSearch(ChainHashTable* hash_table, const char* key) {
     warning(hash_table, NOT_FOUND);
 
-    int bucket_index = hash_table->hashFunction(key, MAX_WORD_LENGTH) % hash_table->capacity;
+    uint64_t hash = 0;
+    HASH_FUNCTION_INLINE(key, hash);
+    int bucket_index = hash % hash_table->capacity;
     LinkedList* llist = hash_table->buckets[bucket_index];
     int index = 0;
-    // printf("bucket_index: %d\n", bucket_index);
     for (int i = 0; i < llist->size; i++) {
         index = llist->next[index];
-        // printf("llist->data[index].key: %s\n", llist->data[index].key);
-        // printf("key: %s\n", key);
         int cmp_result = 0;
 
         asm volatile (
@@ -145,7 +143,6 @@ ChainHashTableSearchStatus chainHashTableSearch(ChainHashTable* hash_table, cons
         );
 
         if (cmp_result == 0xFFFFFFFF) {
-            // printf("FOUND\n");
             return FOUND;
         }
     }
@@ -153,10 +150,13 @@ ChainHashTableSearchStatus chainHashTableSearch(ChainHashTable* hash_table, cons
     return NOT_FOUND;
 }
 
+__attribute__((target("avx2")))
 ChainHashTableErrors chainHashTableDelete(ChainHashTable* hash_table, const char* key) {
     warning(hash_table, CHAIN_NULL_PTR_ERROR);
 
-    int bucket_index  = hash_table->hashFunction(key, MAX_WORD_LENGTH) % hash_table->capacity;
+    uint64_t hash = 0;
+    HASH_FUNCTION_INLINE(key, hash);
+    int bucket_index  = hash % hash_table->capacity;
     LinkedList* llist = hash_table->buckets[bucket_index];
 
     int index = 0;

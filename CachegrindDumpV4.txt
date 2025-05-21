@@ -1,0 +1,27 @@
+--------------------------------------------------------------------------------
+Profile data file 'cachegrind.out.251408'
+--------------------------------------------------------------------------------
+I1 cache:         32768 B, 64 B, 8-way associative
+D1 cache:         32768 B, 64 B, 8-way associative
+LL cache:         16777216 B, 64 B, 16-way associative
+Profiled target:  ./bin/HashTableBenchmark
+Events recorded:  Ir I1mr ILmr Dr D1mr DLmr Dw D1mw DLmw
+Events shown:     Ir I1mr ILmr Dr D1mr DLmr Dw D1mw DLmw
+Event sort order: Ir I1mr ILmr Dr D1mr DLmr Dw D1mw DLmw
+Thresholds:       99 0 0 0 0 0 0 0 0
+Include dirs:     
+User annotated:   
+Auto-annotation:  on
+
+--------------------------------------------------------------------------------
+Ir                      I1mr           ILmr           Dr                     D1mr                   DLmr           Dw                   D1mw            DLmw            
+--------------------------------------------------------------------------------
+13,912,944,218 (100.0%) 1,778 (100.0%) 1,733 (100.0%) 5,585,568,093 (100.0%) 1,203,602,461 (100.0%) 4,192 (100.0%) 421,308,465 (100.0%) 30,168 (100.0%) 24,099 (100.0%)  PROGRAM TOTALS
+
+--------------------------------------------------------------------------------
+Ir                      I1mr        ILmr        Dr                     D1mr                   DLmr           Dw                   D1mw            DLmw             file:function
+--------------------------------------------------------------------------------
+12,534,779,968 (90.09%)  3 ( 0.17%)  3 ( 0.17%) 5,057,484,986 (90.55%) 1,150,895,752 (95.62%)     0          314,940,000 (74.75%)      1 ( 0.00%)      0           ???:chainHashTableSearch(ChainHashTable*, char const*)
+   734,999,993 ( 5.28%)  1 ( 0.06%)  1 ( 0.06%)   524,999,995 ( 9.40%)    52,500,498 ( 4.36%)     0                    0               0               0           ???:crc32HashIntrinsics(char const*, unsigned long)
+   630,192,059 ( 4.53%)  9 ( 0.51%)  8 ( 0.46%)        30,011 ( 0.00%)         1,252 ( 0.00%)     0          104,990,014 (24.92%)      0               0           ???:hashTableSearchTest(ChainHashTable*, Buffer<char*>*)
+
