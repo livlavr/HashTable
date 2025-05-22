@@ -3,7 +3,7 @@
 
 #include "Color-printf/color_printf.h"
 
-#ifndef NASSERTS
+#ifndef NDEBUG
 
     #define warning(condition, message) do                                                      \
     {                                                                                           \
