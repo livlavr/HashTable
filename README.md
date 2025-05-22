@@ -321,7 +321,7 @@ uint64_t crc32HashOptimized(const char* key, size_t length) {
 
 ## Оптимизация: этапы и результаты
 
-### Версия v0 — без оптимизаций (polynomialHash) (`-g`)
+### Версия v0 — без флагов оптимизаций (polynomialHash) (`-Odefault`)
 
 * **Среднее время (10000 поисков):** $6735 * 10^4$ ticks
 * **Улучшение:** 0% (базовая версия)
