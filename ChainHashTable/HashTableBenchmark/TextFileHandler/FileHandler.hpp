@@ -14,7 +14,7 @@ inline FileHandlerError readFile(Buffer<T>* buffer, const char* filename) {
     warning(filename, FILE_HANDLER_NULL_PTR_ERROR);
 
     FILE* file = fopen(filename, "r");
-    warning(file, FILE_HANDLER_OPEN_ERROR);
+    customAssert(file, FILE_HANDLER_OPEN_ERROR);
 
     getSizeOfBuffer(&(buffer->size), filename);
 

@@ -23,15 +23,10 @@ static const int MAX_WORD_LENGTH           = 32;
     uint64_t string_key3 = 0;                                         \
     uint64_t string_key4 = 0;                                         \
                                                                       \
-    memcpy(&string_key1, key + 0, 8);                                 \
-    memcpy(&string_key2, key + 8, 8);                                 \
-    memcpy(&string_key3, key + 16, 8);                                \
-    memcpy(&string_key4, key + 24, 8);                                \
-                                                                      \
-    hash = _mm_crc32_u64(hash, string_key1);                          \
-    hash = _mm_crc32_u64(hash, string_key2);                          \
-    hash = _mm_crc32_u64(hash, string_key3);                          \
-    hash = _mm_crc32_u64(hash, string_key4)
+    hash = _mm_crc32_u64(hash, *((uint64_t*)key + 0));                \
+    hash = _mm_crc32_u64(hash, *((uint64_t*)key + 8));                \
+    hash = _mm_crc32_u64(hash, *((uint64_t*)key + 16));               \
+    hash = _mm_crc32_u64(hash, *((uint64_t*)key + 24));               \
 
 ChainHashTableErrors chainHashTableCtor(ChainHashTable* hash_table, int ctor_capacity) {
     warning(hash_table,        CHAIN_NULL_PTR_ERROR);
@@ -55,6 +50,7 @@ ChainHashTableErrors chainHashTableCtor(ChainHashTable* hash_table, int ctor_cap
 __attribute__((target("avx2")))
 ChainHashTableErrors chainHashTableInsert(ChainHashTable* hash_table, const char* key) {
     warning(hash_table, CHAIN_NULL_PTR_ERROR);
+    warning(key,        CHAIN_NULL_PTR_ERROR);
 
     if(chainHashTableSearch(hash_table, key) == FOUND) {
         return CHAIN_ALREADY_EXIST_ERROR;
@@ -77,8 +73,9 @@ ChainHashTableErrors chainHashTableInsert(ChainHashTable* hash_table, const char
     return CHAIN_HASH_SUCCESS;
 }
 
-ChainHashTableErrors chainHashTableRehash(ChainHashTable* hash_table) {
-    int new_capacity = hash_table->capacity * 2;
+ChainHashTableErrors chainHashTableRehash(ChainHashTable* hash_table, int new_capacity) {
+    warning(hash_table, CHAIN_NULL_PTR_ERROR);
+
     LinkedList** new_buckets = (LinkedList**)calloc(new_capacity, sizeof(LinkedList*));
 
     for (int i = 0; i < new_capacity; i++) {
@@ -111,6 +108,8 @@ ChainHashTableErrors chainHashTableRehash(ChainHashTable* hash_table) {
 }
 
 float chainHashTableGetLoadFactor(ChainHashTable* hash_table) {
+    warning(hash_table, CHAIN_NULL_PTR_ERROR);
+
     float size     = (float)hash_table->size;
     float capacity = (float)hash_table->capacity;
 
@@ -120,6 +119,7 @@ float chainHashTableGetLoadFactor(ChainHashTable* hash_table) {
 __attribute__((target("avx2")))
 ChainHashTableSearchStatus chainHashTableSearch(ChainHashTable* hash_table, const char* key) {
     warning(hash_table, NOT_FOUND);
+    warning(key,        NOT_FOUND);
 
     uint64_t hash = 0;
     HASH_FUNCTION_INLINE(key, hash);
@@ -174,6 +174,8 @@ ChainHashTableErrors chainHashTableDelete(ChainHashTable* hash_table, const char
 }
 
 ChainHashTableErrors chainHashTableDtor(ChainHashTable* hash_table) {
+    warning(hash_table, CHAIN_NULL_PTR_ERROR);
+
     for (int bucket_index = 0; bucket_index < hash_table->capacity; bucket_index++) {
         llistDtor(hash_table->buckets[bucket_index]);
         FREE(hash_table->buckets[bucket_index]);

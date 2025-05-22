@@ -138,10 +138,27 @@ struct LinkedList {
 
 ## Среда и инструменты
 
-* **Компилятор:** GCC/Clang 13+
+* **Компилятор:** GCC 11.4.0
 * **Система:** Linux x86\_64
 * **Профилировщики:** Valgrind (Cachegrind)
 * **Язык:** C/C++ (inline ASM / NASM)
+
+### Параметры среды
+
+|    *Параметр*          |           *Значение*               |
+|------------------------|------------------------------------|
+|   Architecture         |     x86_64                         |
+|  CPU op-mode(s)        |   32-bit, 64-bit                   |
+|  Address sizes         |  40 bits physical, 48 bits virtual |
+|  Byte Order            |   Little Endian                    |
+| CPU(s)                 |     1                              |
+|Caches (sum of all)     |                                    |
+|  L1d                   |   32 KiB (1 instance)              |
+|  L1i                   |   32 KiB (1 instance)              |
+|  L2                    |   4 MiB (1 instance)               |
+|  L3                    |   16 MiB (1 instance)              |
+
+
 
 ---
 
@@ -197,6 +214,8 @@ uint64_t crc32HashIntrinsics(const char* key, size_t length);
 
 ```c
 uint64_t sumHash(const char* key, size_t length) {
+    warning(key, ErrorHashReturnValue);
+
     uint64_t sum = 0;
     uint64_t mod = (uint64_t)(1e9 + 7);
     while (*key != '\0') {
@@ -221,6 +240,8 @@ uint64_t sumHash(const char* key, size_t length) {
 
 ```c
 uint64_t polynomialHash(const char* key, size_t length) {
+    warning(key, ErrorHashReturnValue);
+
     const uint64_t base = 255;
     uint64_t mod = (uint64_t)(1e9 + 7);
     uint64_t hash = 0;
@@ -248,6 +269,8 @@ uint64_t polynomialHash(const char* key, size_t length) {
 const uint64_t Polynomial = 0xEDB88320;
 
 uint64_t crc32Hash(const char* key, size_t length) {
+    warning(key, ErrorHashReturnValue);
+
     uint64_t crc = 0xFFFFFFFF;
     unsigned char* current = (unsigned char*) key;
     while (length--) {
@@ -279,6 +302,8 @@ uint64_t crc32Hash(const char* key, size_t length) {
 
 ```c
 uint64_t crc32HashOptimized(const char* key, size_t length) {
+    warning(key, ErrorHashReturnValue);
+
     uint64_t crc = 0xFFFFFFFF;
     unsigned char* current = (unsigned char*) key;
     while (length--) {
@@ -337,6 +362,8 @@ uint64_t crc32HashOptimized(const char* key, size_t length) {
 
 ```c
 uint64_t crc32HashIntrinsics(const char* key, size_t length) {
+    warning(key, ErrorHashReturnValue);
+
     uint64_t crc = 0xFFFFFFFF;
 
     uint64_t string_key1 = 0;
@@ -344,15 +371,10 @@ uint64_t crc32HashIntrinsics(const char* key, size_t length) {
     uint64_t string_key3 = 0;
     uint64_t string_key4 = 0;
 
-    memcpy(&string_key1, key + 0, 8);
-    memcpy(&string_key2, key + 8, 8);
-    memcpy(&string_key3, key + 16, 8);
-    memcpy(&string_key4, key + 24, 8);
-
-    crc = _mm_crc32_u64(crc, string_key1);
-    crc = _mm_crc32_u64(crc, string_key2);
-    crc = _mm_crc32_u64(crc, string_key3);
-    crc = _mm_crc32_u64(crc, string_key4);
+    crc = _mm_crc32_u64(crc, *((uint64_t*)key + 0));
+    crc = _mm_crc32_u64(crc, *((uint64_t*)key + 8));
+    crc = _mm_crc32_u64(crc, *((uint64_t*)key + 16));
+    crc = _mm_crc32_u64(crc, *((uint64_t*)key + 24));
 
     return crc;
 }
@@ -403,7 +425,8 @@ uint64_t crc32HashIntrinsics(const char* key, size_t length) {
 
 Для того, чтобы заинлайнить функцию хэширования, добавим к определению модификатор `inline` и перенесем функцию в хедер.
 
-![alt text](image.png)
+![alt text](ReadmeImg/image.png)
+
 Изучая objdump заметим, что несмотря на наши подсказки функция не была заинлайнина, поэтому нам ничего не остаётся как сделать это вручную.
 
 * **Описание:** Заменим вызов функции `crc32HashIntrinsics` через указатель на inline этой функции.
@@ -420,15 +443,10 @@ uint64_t crc32HashIntrinsics(const char* key, size_t length) {
     uint64_t string_key3 = 0;                                         \
     uint64_t string_key4 = 0;                                         \
                                                                       \
-    memcpy(&string_key1, key + 0, 8);                                 \
-    memcpy(&string_key2, key + 8, 8);                                 \
-    memcpy(&string_key3, key + 16, 8);                                \
-    memcpy(&string_key4, key + 24, 8);                                \
-                                                                      \
-    hash = _mm_crc32_u64(hash, string_key1);                          \
-    hash = _mm_crc32_u64(hash, string_key2);                          \
-    hash = _mm_crc32_u64(hash, string_key3);                          \
-    hash = _mm_crc32_u64(hash, string_key4)
+    hash = _mm_crc32_u64(hash, *((uint64_t*)key + 0));                \
+    hash = _mm_crc32_u64(hash, *((uint64_t*)key + 8));                \
+    hash = _mm_crc32_u64(hash, *((uint64_t*)key + 16));               \
+    hash = _mm_crc32_u64(hash, *((uint64_t*)key + 24));
 ```
 
 ```c

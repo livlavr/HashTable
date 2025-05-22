@@ -16,9 +16,10 @@ inline FileHandlerError scanFileToBuffer<char>(Buffer<char>* buffer, const char*
     warning(filename,    FILE_HANDLER_NULL_PTR_ERROR);
 
     FILE* file = fopen(filename, "r");
-    warning(file, FILE_HANDLER_OPEN_ERROR);
+    customAssert(file, FILE_HANDLER_OPEN_ERROR);
 
-    fread(buffer->data, sizeof(char), (size_t)buffer->size, file);
+    size_t fread_status = fread(buffer->data, sizeof(char), (size_t)buffer->size, file);
+    customAssert(fread_status > 0, FILE_HANDLER_READ_ERROR);
 
     fclose(file);
 

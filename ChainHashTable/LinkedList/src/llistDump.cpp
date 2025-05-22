@@ -101,7 +101,8 @@ LlistErrors llistDump(LinkedList* llist) {
     strcat(system_duffer, "dot -Tpng Dump-source/dump.dot -o ");
     strcat(system_duffer, llist->dump_file);
 
-    system(system_duffer);
+    int system_status = system(system_duffer);
+    warning(system_status != -1, LINKED_LIST_PROGRAM_ERROR);
 
     return LINKED_LIST_SUCCESS;
 }
@@ -111,7 +112,6 @@ LlistErrors setDumpFile(LinkedList* llist)
     warning(llist, LINKED_LIST_NULL_PTR_ERROR);
 
     char *buffer = (char*)calloc(SIZE_OF_BUFFER, sizeof(char));
-
     warning(buffer, LINKED_LIST_ALLOCATION_ERROR);
 
     time_t my_time          = time(NULL);
@@ -120,7 +120,8 @@ LlistErrors setDumpFile(LinkedList* llist)
     size_t time_char_length = strlen(time) - 1;
     const char *folder_name = "Llist-dumps/";
 
-    system("mkdir -p Llist-dumps");
+    int system_status = system("mkdir -p Llist-dumps");
+    warning(system_status != -1, LINKED_LIST_PROGRAM_ERROR);
 
     strcpy(buffer, folder_name);
     strncpy(buffer + strlen(folder_name), time, time_char_length);

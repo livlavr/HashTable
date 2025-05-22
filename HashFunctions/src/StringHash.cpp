@@ -9,9 +9,12 @@
 
 #define INTRINSICS_SUPPORTED
 
-const uint64_t Polynomial = 0xEDB88320;
+static const uint64_t Polynomial = 0xEDB88320;
+static const uint64_t ErrorHashReturnValue = 0xFFFFFFFF;
 
 uint64_t crc32Hash(const char* key, size_t length) {
+    warning(key, ErrorHashReturnValue);
+
     uint64_t crc = 0xFFFFFFFF;
     unsigned char* current = (unsigned char*) key;
     while (length--) {
@@ -29,6 +32,8 @@ uint64_t crc32Hash(const char* key, size_t length) {
 }
 
 uint64_t crc32HashOptimized(const char* key, size_t length) {
+    warning(key, ErrorHashReturnValue);
+
     uint64_t crc = 0xFFFFFFFF;
     unsigned char* current = (unsigned char*) key;
     while (length--) {
@@ -45,6 +50,8 @@ uint64_t crc32HashOptimized(const char* key, size_t length) {
     #define CRC32INTRINSICS()                                                 \
         __attribute__((target("avx2")))                                       \
         uint64_t crc32HashIntrinsics(const char* key, size_t length) {        \
+            warning(key, ErrorHashReturnValue);                               \
+                                                                              \
             uint64_t crc = 0xFFFFFFFF;                                        \
                                                                               \
             uint64_t string_key1 = 0;                                         \
@@ -52,15 +59,10 @@ uint64_t crc32HashOptimized(const char* key, size_t length) {
             uint64_t string_key3 = 0;                                         \
             uint64_t string_key4 = 0;                                         \
                                                                               \
-            memcpy(&string_key1, key + 0, 8);                                 \
-            memcpy(&string_key2, key + 8, 8);                                 \
-            memcpy(&string_key3, key + 16, 8);                                \
-            memcpy(&string_key4, key + 24, 8);                                \
-                                                                              \
-            crc = _mm_crc32_u64(crc, string_key1);                            \
-            crc = _mm_crc32_u64(crc, string_key2);                            \
-            crc = _mm_crc32_u64(crc, string_key3);                            \
-            crc = _mm_crc32_u64(crc, string_key4);                            \
+            crc = _mm_crc32_u64(crc, *((uint64_t*)key + 0));                  \
+            crc = _mm_crc32_u64(crc, *((uint64_t*)key + 8));                  \
+            crc = _mm_crc32_u64(crc, *((uint64_t*)key + 16));                 \
+            crc = _mm_crc32_u64(crc, *((uint64_t*)key + 24));                 \
                                                                               \
             return crc;                                                       \
         }
@@ -78,6 +80,8 @@ CRC32INTRINSICS()
 #undef INTRINSICS_SUPPORTED
 
 uint64_t sumHash(const char* key, size_t length) {
+    warning(key, ErrorHashReturnValue);
+
     uint64_t sum = 0;
     uint64_t mod = (uint64_t)(1e9 + 7);
     while (*key != '\0') {
@@ -88,6 +92,8 @@ uint64_t sumHash(const char* key, size_t length) {
 }
 
 uint64_t polynomialHash(const char* key, size_t length) {
+    warning(key, ErrorHashReturnValue);
+
     const uint64_t base = 255;
     uint64_t mod = (uint64_t)(1e9 + 7);
     uint64_t hash = 0;

@@ -38,7 +38,7 @@ ChainHashTableErrors       chainHashTableCtor  (ChainHashTable* hash_table, int 
 ChainHashTableErrors       chainHashTableDtor  (ChainHashTable* hash_table);
 ChainHashTableErrors       chainHashTableInsert(ChainHashTable* hash_table, const char* key);
 ChainHashTableErrors       chainHashTableDelete(ChainHashTable* hash_table, const char* key);
-ChainHashTableErrors       chainHashTableRehash(ChainHashTable* hash_table);
+ChainHashTableErrors       chainHashTableRehash(ChainHashTable* hash_table, int new_capacity);
 ChainHashTableSearchStatus chainHashTableSearch(ChainHashTable* hash_table, const char* key);
 
 #endif
