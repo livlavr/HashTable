@@ -335,10 +335,10 @@ uint64_t crc32HashOptimized(const char* key, size_t length) {
 
 ### Версия v1 — флаги компиляции (polynomialHash) `-O3`
 
-* **Флаги:** `-O3 -std=c++20 -march=native -mtune=native` //TODO нужны ли все флаги?
+* **Флаги:** `-O3 -std=c++20 -march=native -mtune=native`
 * **Среднее время:** $359 * 10^4$ ticks
 * **Улучшение относительно `v1`:** -
-* **Улучшение относительно предыдущей версии:** 94.7 %
+* **Улучшение относительно предыдущей версии:** 94.7 % (1,94x)
 * **Дамп Cachegrind:**
 
 ```
