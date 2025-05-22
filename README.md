@@ -366,15 +366,10 @@ uint64_t crc32HashIntrinsics(const char* key, size_t length) {
 
     uint64_t crc = 0xFFFFFFFF;
 
-    uint64_t string_key1 = 0;
-    uint64_t string_key2 = 0;
-    uint64_t string_key3 = 0;
-    uint64_t string_key4 = 0;
-
-    crc = _mm_crc32_u64(crc, *((uint64_t*)key + 0));
-    crc = _mm_crc32_u64(crc, *((uint64_t*)key + 8));
-    crc = _mm_crc32_u64(crc, *((uint64_t*)key + 16));
-    crc = _mm_crc32_u64(crc, *((uint64_t*)key + 24));
+    crc = _mm_crc32_u64(crc, *((uint64_t*)(key + 0)));
+    crc = _mm_crc32_u64(crc, *((uint64_t*)(key + 8)));
+    crc = _mm_crc32_u64(crc, *((uint64_t*)(key + 16)));
+    crc = _mm_crc32_u64(crc, *((uint64_t*)(key + 24)));
 
     return crc;
 }
